@@ -1,0 +1,20 @@
+[
+{
+  "modid": "cabinets3",
+  "name": "Cabinets Reloaded",
+  "description": "Add Cabinets to your world to show off your bling!",
+  "version": "${version}",
+	  "mcversion": "${mcversion}",
+  "url": "http://www.minecraftforum.net/topic/2156342",
+  "updateUrl": "",
+  "authorList": [
+    "FusionLord"
+  ],
+  "credits": "Chazim: Tester!",
+  "logoFile": "assets/cabinets3/textures/logo/logo.png",
+  "screenshots": [ "assets/cabinets3/textures/screenshots/CR_2_1-a.png", "assets/cabinets3/textures/screenshots/CR_2_1-b.png" ],
+  "parent":"",
+  "dependencies": [
+  ]
+}
+]

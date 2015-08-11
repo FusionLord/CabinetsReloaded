@@ -1,0 +1,35 @@
+{
+    "forge_marker": 1,
+    "defaults": {
+        "model": "cabinets3:cabinet"
+    },
+    "variants": {
+        "cabinet_type": {
+            "left": {
+                "submodel": "cabinets3:cabinet_left"
+            },
+            "right": {
+                "submodel": "cabinets3:cabinet_right"
+            },
+            "double": {
+                "submodel": "cabinets3:cabinet_double"
+            }
+        },
+        "inventory": {
+            "model": "cabinets3:cabinet",
+            "submodel": "cabinets3:cabinet_left"
+        },
+        "inventory_left": {
+            "model": "cabinets3:cabinet",
+            "submodel": "cabinets3:cabinet_left"
+        },
+        "inventory_right": {
+            "model": "cabinets3:cabinet",
+            "submodel": "cabinets3:cabinet_right"
+        },
+        "inventory_double": {
+            "model": "cabinets3:cabinet",
+            "submodel": "cabinets3:cabinet_double"
+        }
+    }
+}
