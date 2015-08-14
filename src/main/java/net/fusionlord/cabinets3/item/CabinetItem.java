@@ -3,7 +3,6 @@ package net.fusionlord.cabinets3.item;
 import net.minecraft.block.Block;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
@@ -11,6 +10,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import org.lwjgl.input.Keyboard;
 
 import java.util.List;
 
@@ -34,27 +34,27 @@ public class CabinetItem extends ItemBlock
 			if (itemStack.getTagCompound().hasKey("silktouch"))
 			{
 				silk = itemStack.getTagCompound().getCompoundTag("silktouch");
-				ItemStack displayStack = ItemStack.loadItemStackFromNBT(silk.getCompoundTag("displayStack"));
-				if (displayStack == null)
-				{
-					displayStack = new ItemStack(Blocks.planks);
-				}
-				add(list, "Owner: %s", silk.getString("ownerName"));
 				add(list, "Public: %s", !silk.getBoolean("locked"));
 				add(list, "Hidden: %s", silk.getBoolean("hidden"));
-				add(list, "Skin: %s", displayStack.getDisplayName());
-				if (silk.hasKey("inv"))
+				if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT))
 				{
-					NBTTagCompound inv = silk.getCompoundTag("inv");
-					add(list, "Contains:");
-					for (int i = 0; i < 9; i++)
+					if (silk.hasKey("inv"))
 					{
-						ItemStack stack = ItemStack.loadItemStackFromNBT(inv.getCompoundTag("slot".concat(String.valueOf(i))));
-						if (stack != null)
+						NBTTagCompound inv = silk.getCompoundTag("inv");
+						add(list, "Contains:");
+						for (int i = 0; i < 9; i++)
 						{
-							add(list, "  %sx %s", stack.stackSize, stack.getDisplayName());
+							ItemStack stack = ItemStack.loadItemStackFromNBT(inv.getCompoundTag("slot".concat(String.valueOf(i))));
+							if (stack != null)
+							{
+								add(list, "  %sx %s", stack.stackSize, stack.getDisplayName());
+							}
 						}
 					}
+				}
+				else
+				{
+					add(list, "Hold 'shift' for contents.");
 				}
 			}
 		}
@@ -103,6 +103,6 @@ public class CabinetItem extends ItemBlock
 	@Override
 	public String getItemStackDisplayName(ItemStack itemStack)
 	{
-		return StatCollector.translateToLocal(String.format("item.%s.name", getUnlocalizedName(itemStack)));
+		return itemStack.hasTagCompound() ? String.format("%s's Cabinet", ((NBTTagCompound) itemStack.getTagCompound().getTag("silktouch")).getString("ownerName")) : StatCollector.translateToLocal(String.format("item.%s.name", getUnlocalizedName(itemStack)));
 	}
 }

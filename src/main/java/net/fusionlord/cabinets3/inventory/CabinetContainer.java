@@ -18,12 +18,10 @@ public class CabinetContainer extends Container
 		this.cabinet = cabinet;
 		this.cabinet.openInventory(inventory.player);
 
-		addSlotToContainer(new CabinetSlot(cabinet, 0, 77, 35));
-
 		int o = 1;
 		for (int q = 0; q < 3; q++)
 		{
-			for (int p = 0; p < (cabinet.getSizeInventory() - 1) / 3; p++)
+			for (int p = 0; p < (cabinet.getSizeInventory()) / 3; p++)
 			{
 				addSlotToContainer(new CabinetSlot(cabinet, o++, 8 + p * 18, 17 + q * 18));
 			}

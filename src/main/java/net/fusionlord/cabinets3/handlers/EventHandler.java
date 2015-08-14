@@ -17,7 +17,7 @@ public class EventHandler
 	@SubscribeEvent
 	public void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent eventArgs)
 	{
-		if(eventArgs.modID.equals(Reference.MOD_ID))
+		if (eventArgs.modID.equals(Reference.MOD_ID))
 		{
 			Reference.config.load();
 			if (Reference.cabinetYield != Reference.oldCabinetYield)

@@ -1,61 +1,78 @@
 package net.fusionlord.cabinets3.packets;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
-import net.fusionlord.fusionutil.network.packets.AbstractPacket;
 import net.fusionlord.cabinets3.tileentity.CabinetTileEntity;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BlockPos;
+import net.minecraft.world.World;
 import net.minecraftforge.fml.common.network.ByteBufUtils;
+import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
+import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
+import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 
-public class CabinetSyncPacket extends AbstractPacket
+public class CabinetSyncPacket implements IMessage
 {
-	int x, y, z;
+	BlockPos pos;
 	NBTTagCompound tagCompound;
+	byte part;
+	public static final byte GENERAL = 0, INVENTORY = 1, TEXTURES = 2;
 
 	public CabinetSyncPacket() {}
 
-	public CabinetSyncPacket(CabinetTileEntity cabinet)
+	public CabinetSyncPacket(CabinetTileEntity cabinet, byte part)
 	{
-		x = cabinet.getPos().getX();
-		y = cabinet.getPos().getY();
-		z = cabinet.getPos().getZ();
+		pos = cabinet.getPos();
 		tagCompound = new NBTTagCompound();
-		cabinet.writeToNBT(tagCompound);
-	}
-
-	@Override
-	public void encodeInto(ChannelHandlerContext ctx, ByteBuf buffer)
-	{
-		buffer.writeInt(x);
-		buffer.writeInt(y);
-		buffer.writeInt(z);
-		ByteBufUtils.writeTag(buffer, tagCompound);
-	}
-
-	@Override
-	public void decodeInto(ChannelHandlerContext ctx, ByteBuf buffer)
-	{
-		x = buffer.readInt();
-		y = buffer.readInt();
-		z = buffer.readInt();
-		tagCompound = ByteBufUtils.readTag(buffer);
-	}
-
-	@Override
-	public void handleClientSide(EntityPlayer player)
-	{
-		TileEntity te = player.worldObj.getTileEntity(new BlockPos(x, y, z));
-		if (te != null && te instanceof CabinetTileEntity)
+		this.part = part;
+		switch (part)
 		{
-			((CabinetTileEntity)te).readExtraNBT(tagCompound);
+			case GENERAL:
+				cabinet.writeGeneralNBT(tagCompound);
+				break;
+			case INVENTORY:
+				cabinet.writeInventoryNBT(tagCompound);
+				break;
+			case TEXTURES:
+				cabinet.writeTextureNBT(tagCompound);
 		}
 	}
 
 	@Override
-	public void handleServerSide(EntityPlayer player)
+	public void toBytes(ByteBuf buffer)
 	{
+		buffer.writeLong(pos.toLong());
+		buffer.writeByte(part);
+		ByteBufUtils.writeTag(buffer, tagCompound);
+	}
+
+	@Override
+	public void fromBytes(ByteBuf buffer)
+	{
+		pos = BlockPos.fromLong(buffer.readLong());
+		part = buffer.readByte();
+		tagCompound = ByteBufUtils.readTag(buffer);
+	}
+
+	public static class Handler implements IMessageHandler<CabinetSyncPacket, IMessage>
+	{
+		@Override
+		public IMessage onMessage(CabinetSyncPacket message, MessageContext ctx)
+		{
+			World world = Minecraft.getMinecraft().theWorld;
+			CabinetTileEntity cabinet = (CabinetTileEntity) world.getTileEntity(message.pos);
+			switch (message.part)
+			{
+				case GENERAL:
+					cabinet.readGeneralNBT(message.tagCompound);
+					break;
+				case INVENTORY:
+					cabinet.readInventoryNBT(message.tagCompound);
+					break;
+				case TEXTURES:
+					cabinet.readTextureNBT(message.tagCompound);
+			}
+			return null;
+		}
 	}
 }

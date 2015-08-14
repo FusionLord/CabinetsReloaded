@@ -1,60 +1,53 @@
 package net.fusionlord.cabinets3.packets;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
-import net.fusionlord.fusionutil.network.packets.AbstractPacket;
 import net.fusionlord.cabinets3.tileentity.CabinetTileEntity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BlockPos;
+import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
+import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
+import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 
 /**
  * Author: FusionLord
  * Email: FusionLord@gmail.com
  */
-public class CabinetNullifyOwnerPacket extends AbstractPacket
+public class CabinetNullifyOwnerPacket implements IMessage
 {
-	int x, y, z;
+	BlockPos pos;
 
-	public CabinetNullifyOwnerPacket()
-	{
-	}
+	public CabinetNullifyOwnerPacket() {}
 
 	public CabinetNullifyOwnerPacket(CabinetTileEntity cabinet)
 	{
-		x = cabinet.getPos().getX();
-		y = cabinet.getPos().getY();
-		z = cabinet.getPos().getZ();
+		pos = cabinet.getPos();
 	}
 
 	@Override
-	public void encodeInto(ChannelHandlerContext ctx, ByteBuf buffer)
+	public void toBytes(ByteBuf buffer)
 	{
-		buffer.writeInt(x);
-		buffer.writeInt(y);
-		buffer.writeInt(z);
+		buffer.writeLong(pos.toLong());
 	}
 
 	@Override
-	public void decodeInto(ChannelHandlerContext ctx, ByteBuf buffer)
+	public void fromBytes(ByteBuf buffer)
 	{
-		this.x = buffer.readInt();
-		this.y = buffer.readInt();
-		this.z = buffer.readInt();
+		pos = BlockPos.fromLong(buffer.readLong());
 	}
 
-	@Override
-	public void handleClientSide(EntityPlayer player)
+	public static class Handler implements IMessageHandler<CabinetNullifyOwnerPacket, IMessage>
 	{
-	}
-
-	@Override
-	public void handleServerSide(EntityPlayer player)
-	{
-		TileEntity te = player.worldObj.getTileEntity(new BlockPos(x, y, z));
-		if (te instanceof CabinetTileEntity)
+		@Override
+		public IMessage onMessage(CabinetNullifyOwnerPacket message, MessageContext ctx)
 		{
-			((CabinetTileEntity) te).setOwner(null);
+			EntityPlayer player = ctx.getServerHandler().playerEntity;
+			TileEntity te = player.worldObj.getTileEntity(message.pos);
+			if (te instanceof CabinetTileEntity)
+			{
+				((CabinetTileEntity) te).setOwner(null);
+			}
+			return null;
 		}
 	}
 }

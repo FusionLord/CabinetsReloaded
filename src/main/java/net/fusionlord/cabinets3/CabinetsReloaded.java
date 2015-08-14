@@ -20,7 +20,7 @@ public class CabinetsReloaded
 	public static CabinetsReloaded instance;
 
 	@SidedProxy(clientSide = "net.fusionlord.cabinets3.client.ClientProxy",
-			serverSide = "net.fusionlord.cabinets3.CommonProxy")
+			           serverSide = "net.fusionlord.cabinets3.CommonProxy")
 	public static CommonProxy proxy;
 
 	@EventHandler
@@ -41,7 +41,6 @@ public class CabinetsReloaded
 	@EventHandler
 	public void postInit(FMLPostInitializationEvent event)
 	{
-		Reference.packetHandler.postInitialise();
-		Reference.addRecipes();
+		Reference.addCabinetRecipe();
 	}
 }

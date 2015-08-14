@@ -1,54 +1,111 @@
 package net.fusionlord.cabinets3;
 
-import net.fusionlord.fusionutil.network.PacketHandler;
 import net.fusionlord.cabinets3.block.CabinetBlock;
 import net.fusionlord.cabinets3.config.Config;
 import net.fusionlord.cabinets3.handlers.EventHandler;
 import net.fusionlord.cabinets3.packets.CabinetGuiPacket;
 import net.fusionlord.cabinets3.packets.CabinetNullifyOwnerPacket;
 import net.fusionlord.cabinets3.packets.CabinetSyncPacket;
-import net.minecraft.init.Blocks;
-import net.minecraft.item.ItemStack;
+import net.fusionlord.cabinets3.packets.CabinetTextureSyncPacket;
+import net.fusionlord.cabinets3.recipies.CabinetRecipe;
+import net.fusionlord.fusionutil.network.PacketHandler;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.registry.GameRegistry;
+import net.minecraftforge.fml.relauncher.ReflectionHelper;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 public class Reference
 {
 
-	public static final String MOD_ID      = "cabinets3";
+	public static final String MOD_ID = "cabinets3";
 	public static final String MOD_VERSION = "version";
 	public static PacketHandler packetHandler;
-	public static CabinetBlock  cabinet;
-	public static Config        config;
+	public static CabinetBlock cabinet;
+	public static Config config;
 
 	public static boolean showItemsTileEntity = true;
-	public static boolean showItemsItem       = true;
-	public static int     cabinetYield        = 8;
-	public static int     oldCabinetYield     = cabinetYield;
+	public static boolean showItemsItem = true;
+	public static int cabinetYield = 8;
+	public static int oldCabinetYield = cabinetYield;
+
+
+	public static List<TextureAtlasSprite> SKINS = new ArrayList<>();
 
 	public static IRecipe currentCabinetRecipe;
+	public static String[] LIGHTS;
+	public static String[] BLACKLIST;
+	public static String[] CLIMBABLE;
+	public static String[] COLORABLE;
 
 	public static void init()
 	{
 		config.load();
 		cabinet = new CabinetBlock();
 		packetHandler = new PacketHandler("CabinetsReloaded");
-		packetHandler.initialise();
-		packetHandler.registerPackets(CabinetGuiPacket.class,
-		                             CabinetNullifyOwnerPacket.class,
-		                             CabinetSyncPacket.class
-		);
+		packetHandler.getHandler().registerMessage(CabinetGuiPacket.Handler.class, CabinetGuiPacket.class, 0, Side.SERVER);
+		packetHandler.getHandler().registerMessage(CabinetTextureSyncPacket.Handler.class, CabinetTextureSyncPacket.class, 1, Side.SERVER);
+		packetHandler.getHandler().registerMessage(CabinetNullifyOwnerPacket.Handler.class, CabinetNullifyOwnerPacket.class, 2, Side.SERVER);
+		packetHandler.getHandler().registerMessage(CabinetSyncPacket.Handler.class, CabinetSyncPacket.class, 3, Side.CLIENT);
 		FMLCommonHandler.instance().bus().register(new EventHandler());
 	}
 
-	public static void addRecipes()
+	@SideOnly(Side.CLIENT)
+	public static void loadSkins()
 	{
-		addCabinetRecipe();
-		GameRegistry.addShapelessRecipe(new ItemStack(cabinet, 1, 1), new ItemStack(cabinet, 1, 0));
-		GameRegistry.addShapelessRecipe(new ItemStack(cabinet, 1, 2), new ItemStack(cabinet, 1, 1));
-		GameRegistry.addShapelessRecipe(new ItemStack(cabinet, 1), new ItemStack(cabinet, 1, 2));
+		SKINS.clear();
+		try
+		{
+			TextureMap tm = Minecraft.getMinecraft().getTextureMapBlocks();
+			Class clazz = Class.forName(TextureMap.class.getName());
+			Field f = ReflectionHelper.findField(clazz, "mapRegisteredSprites", "field_110574_e");
+			f.setAccessible(true);
+			Field modifiers = Field.class.getDeclaredField("modifiers");
+			modifiers.setAccessible(true);
+			modifiers.setInt(f, f.getModifiers() & ~Modifier.FINAL);
+			Map mapRegisteredSprites = (Map) f.get(tm);
+
+			Iterator iterator = mapRegisteredSprites.entrySet().iterator();
+			Map.Entry entry;
+			whileloop:
+			while (iterator.hasNext())
+			{
+				entry = (Map.Entry) iterator.next();
+				if (entry.getValue() instanceof TextureAtlasSprite)
+				{
+					TextureAtlasSprite tex = (TextureAtlasSprite) entry.getValue();
+					if (tex.getIconName().contains("blocks"))
+					{
+						for (String s : BLACKLIST)
+						{
+							if (tex.getIconName().contains(s))
+							{
+								continue whileloop;
+							}
+						}
+						SKINS.add(tex);
+					}
+				}
+			}
+			f.setAccessible(false);
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		SKINS.sort((o1, o2) -> o1.getIconName().toUpperCase().compareTo(o2.getIconName().toUpperCase()));
 	}
 
 	public static ResourceLocation getResource(String resource)
@@ -58,8 +115,6 @@ public class Reference
 
 	public static void addCabinetRecipe()
 	{
-		currentCabinetRecipe = GameRegistry.addShapedRecipe(new ItemStack(cabinet, cabinetYield), "ppp", "pgp", "ppp", 'p',
-				new ItemStack(Blocks.planks, 0, 0), 'g', new ItemStack(Blocks.glass));
-		oldCabinetYield = cabinetYield;
+		GameRegistry.addRecipe(new CabinetRecipe());
 	}
 }

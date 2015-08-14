@@ -2,6 +2,7 @@ package net.fusionlord.cabinets3.tileentity;
 
 import net.fusionlord.cabinets3.Reference;
 import net.fusionlord.cabinets3.block.CabinetBlock;
+import net.fusionlord.cabinets3.client.renderer.CabinetParts;
 import net.fusionlord.cabinets3.item.CabinetItem;
 import net.fusionlord.cabinets3.packets.CabinetSyncPacket;
 import net.minecraft.entity.player.EntityPlayer;
@@ -24,8 +25,8 @@ import java.util.UUID;
 
 public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBox, IInventory, ISidedInventory
 {
-	private ItemStack[] contents = new ItemStack[getSizeInventory() - 1];
-	private ItemStack displayStack;
+	private ItemStack[] contents = new ItemStack[getSizeInventory()];
+	private String[] textures;
 	private UUID owner;
 	private boolean hidden;
 	private boolean locked;
@@ -40,21 +41,35 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 	{
 		super();
 		locked = true;
+		textures = new String[CabinetParts.values().length];
+		for (CabinetParts part : CabinetParts.values())
+		{
+			String tex;
+			if (part.name().toLowerCase().contains("half_door"))
+			{
+				tex = "cabinets3:blocks/halfdoor";
+			}
+			else if (part.name().toLowerCase().contains("door"))
+			{
+				tex = "cabinets3:blocks/door";
+			}
+			else
+			{
+				tex = "minecraft:blocks/planks_oak";
+			}
+			textures[part.ordinal()] = tex;
+		}
 	}
 
 	@Override
 	public int getSizeInventory()
 	{
-		return 10;
+		return 9;
 	}
 
 	@Override
 	public ItemStack getStackInSlot(int slot)
 	{
-		if (slot == 0)
-		{
-			return displayStack;
-		}
 		return contents[slot - 1];
 	}
 
@@ -84,14 +99,7 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 	@Override
 	public void setInventorySlotContents(int slot, ItemStack itemStack)
 	{
-		if (slot == 0)
-		{
-			displayStack = itemStack;
-		}
-		else
-		{
-			contents[slot - 1] = itemStack;
-		}
+		contents[slot - 1] = itemStack;
 		if (itemStack != null && itemStack.stackSize > this.getInventoryStackLimit())
 		{
 			itemStack.stackSize = this.getInventoryStackLimit();
@@ -109,7 +117,7 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 	@Override
 	public boolean isItemValidForSlot(int slot, ItemStack itemStack)
 	{
-		return slot  == 0 && itemStack.getItem() instanceof ItemBlock && displayStack == null || !(itemStack.getItem() instanceof CabinetItem);
+		return slot == 0 && itemStack.getItem() instanceof ItemBlock || !(itemStack.getItem() instanceof CabinetItem);
 	}
 
 	@Override
@@ -153,6 +161,13 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 
 	public void readExtraNBT(NBTTagCompound tag)
 	{
+		readGeneralNBT(tag);
+		readInventoryNBT(tag);
+		readTextureNBT(tag);
+	}
+
+	public void readGeneralNBT(NBTTagCompound tag)
+	{
 		this.facing = tag.getInteger("facing");
 		if (tag.getBoolean("hasOwner"))
 		{
@@ -162,12 +177,27 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 		this.hidden = tag.getBoolean("hidden");
 		this.locked = tag.getBoolean("locked");
 		this.powered = tag.getBoolean("Powered");
+	}
+
+	public void readInventoryNBT(NBTTagCompound tag)
+	{
 		NBTTagCompound inv = tag.getCompoundTag("inv");
 		for (int i = 0; i < contents.length; i++)
 		{
 			contents[i] = ItemStack.loadItemStackFromNBT(inv.getCompoundTag("slot".concat(String.valueOf(i))));
 		}
-		displayStack = ItemStack.loadItemStackFromNBT(tag.getCompoundTag("displayStack"));
+	}
+
+	public void readTextureNBT(NBTTagCompound tag)
+	{
+		NBTTagCompound texTag = tag.getCompoundTag("texTag");
+		for (CabinetParts part : CabinetParts.values())
+		{
+			if (texTag.hasKey("texture:".concat(part.name().toLowerCase())))
+			{
+				textures[part.ordinal()] = texTag.getString("texture:".concat(part.name().toLowerCase()));
+			}
+		}
 	}
 
 	@Override
@@ -178,6 +208,13 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 	}
 
 	public void writeExtraNBT(NBTTagCompound tag)
+	{
+		writeGeneralNBT(tag);
+		writeInventoryNBT(tag);
+		writeTextureNBT(tag);
+	}
+
+	public void writeGeneralNBT(NBTTagCompound tag)
 	{
 		tag.setInteger("facing", this.facing);
 		tag.setBoolean("hasOwner", this.owner != null);
@@ -190,6 +227,10 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 		tag.setBoolean("hidden", this.hidden);
 		tag.setBoolean("locked", this.locked);
 		tag.setBoolean("Powered", this.powered);
+	}
+
+	public void writeInventoryNBT(NBTTagCompound tagCompound)
+	{
 		NBTTagCompound inv = new NBTTagCompound();
 		for (int i = 0; i < contents.length; i++)
 		{
@@ -201,13 +242,17 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 			contents[i].writeToNBT(itemTag);
 			inv.setTag("slot".concat(String.valueOf(i)), itemTag);
 		}
-		tag.setTag("inv", inv);
-		if (displayStack != null)
+		tagCompound.setTag("inv", inv);
+	}
+
+	public void writeTextureNBT(NBTTagCompound tagCompound)
+	{
+		NBTTagCompound texTag = new NBTTagCompound();
+		for (CabinetParts part : CabinetParts.values())
 		{
-			NBTTagCompound displayTag = new NBTTagCompound();
-			displayStack.writeToNBT(displayTag);
-			tag.setTag("displayStack", displayTag);
+			texTag.setString("texture:".concat(part.name().toLowerCase()), textures[part.ordinal()]);
 		}
+		tagCompound.setTag("texTag", texTag);
 	}
 
 	@Override
@@ -222,8 +267,6 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 		return worldObj != null && worldObj.getTileEntity(pos) == this && (this.isOwner(player) || !locked);
 	}
 
-
-
 	@Override
 	public void update()
 	{
@@ -232,7 +275,7 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 		double z = (double) pos.getZ() + 0.5D;
 		if (!worldObj.isRemote)
 		{
-			if (this.sync++ >= 2400)
+			if (sync++ % 2400 == 1)
 			{
 				sync();
 			}
@@ -248,7 +291,7 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 				if (lastAngle == 0F)
 				{
 					worldObj.playSoundEffect(x, y, z, "random.chestopen", 0.5F,
-							worldObj.rand.nextFloat() * 0.1F + 0.9F);
+							                        worldObj.rand.nextFloat() * 0.1F + 0.9F);
 				}
 			}
 
@@ -258,7 +301,7 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 				if (lastAngle == 1F)
 				{
 					worldObj.playSoundEffect(x, y, z, "random.chestclosed", 0.5F,
-							worldObj.rand.nextFloat() * 0.1F + 0.9F);
+							                        worldObj.rand.nextFloat() * 0.1F + 0.9F);
 				}
 			}
 		}
@@ -268,7 +311,7 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 			doorAngle = 1F;
 		}
 		if (doorAngle < 0F || (CabinetBlock.getBlocked(worldObj, pos, facing)
-				&& doorAngle > 0F))
+				                       && doorAngle > 0F))
 		{
 			doorAngle = 0F;
 		}
@@ -322,7 +365,7 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 	{
 		return null;
 	}
-		
+
 	@Override
 	public boolean hasCustomName()
 	{
@@ -341,14 +384,9 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 
 	public void sync()
 	{
-		Reference.packetHandler.sendToAllAround(new CabinetSyncPacket(this),
-				new NetworkRegistry.TargetPoint(worldObj.provider.getDimensionId(), pos.getX(), pos.getY(), pos.getZ(), 64D));
-		this.sync = 0;
-	}
-
-	public ItemStack getDisplayStack()
-	{
-		return displayStack;
+		Reference.packetHandler.sendToAllAround(new CabinetSyncPacket(this, CabinetSyncPacket.GENERAL), new NetworkRegistry.TargetPoint(worldObj.provider.getDimensionId(), pos.getX(), pos.getY(), pos.getZ(), 64D));
+		Reference.packetHandler.sendToAllAround(new CabinetSyncPacket(this, CabinetSyncPacket.INVENTORY), new NetworkRegistry.TargetPoint(worldObj.provider.getDimensionId(), pos.getX(), pos.getY(), pos.getZ(), 64D));
+		Reference.packetHandler.sendToAllAround(new CabinetSyncPacket(this, CabinetSyncPacket.TEXTURES), new NetworkRegistry.TargetPoint(worldObj.provider.getDimensionId(), pos.getX(), pos.getY(), pos.getZ(), 64D));
 	}
 
 	public UUID getOwner()
@@ -448,5 +486,26 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 	public String getOwnerName()
 	{
 		return ownerName;
+	}
+
+	public void setTexture(int id, String selectedTexture)
+	{
+		textures[id] = selectedTexture;
+	}
+
+	public String getTexture(int id)
+	{
+		return textures[id];
+	}
+
+	public String[] getTextures()
+	{
+		return textures;
+	}
+
+	public void setTextures(String[] newTextures)
+	{
+		textures = newTextures;
+		worldObj.checkLight(getPos());
 	}
 }

@@ -1,21 +1,86 @@
 {
-    "textures": {
-        "1": "cabinets3:blocks/door"
-    },
-    "elements": [
-        {
-            "name": "door",
-            "from": [ 0.0, 1.0, 15.0 ], 
-            "to": [ 16.0, 15.0, 16.0 ], 
-            "rotation": { "origin": [ 0.5, 1.0, 15.5 ], "axis": "y", "angle": -45.0 },
-            "faces": {
-                "north": { "texture": "#1", "uv": [ 0.0, 0.0, 16.0, 16.0 ] },
-                "east": { "texture": "#1", "uv": [ 15.0, 1.0, 16.0, 15.0 ] },
-                "south": { "texture": "#1", "uv": [ 0.0, 0.0, 16.0, 16.0 ] },
-                "west": { "texture": "#1", "uv": [ 0.0, 1.0, 1.0, 15.0 ] },
-                "up": { "texture": "#1", "uv": [ 0.0, 0.0, 16.0, 1.0 ] },
-                "down": { "texture": "#1", "uv": [ 0.0, 15.0, 16.0, 16.0 ] }
-            }
+  "__comment": "Model generated using MrCrayfish's Model Creator (http://mrcrayfish.com/modelcreator/)",
+  "textures": {
+    "0": "cabinets3:blocks/door"
+  },
+  "elements": [
+    {
+      "name": "door",
+      "from": [
+        0.0,
+        1.0,
+        15.0
+      ],
+      "to": [
+        16.0,
+        15.0,
+        16.0
+      ],
+      "rotation": {
+        "origin": [
+          0.5,
+          1.0,
+          15.5
+        ],
+        "axis": "y",
+        "angle": -45.0
+      },
+      "faces": {
+        "north": {
+          "texture": "#0",
+          "uv": [
+            0.0,
+            1.0,
+            16.0,
+            15.0
+          ]
+        },
+        "east": {
+          "texture": "#0",
+          "uv": [
+            15.0,
+            1.0,
+            16.0,
+            15.0
+          ]
+        },
+        "south": {
+          "texture": "#0",
+          "uv": [
+            0.0,
+            1.0,
+            16.0,
+            15.0
+          ]
+        },
+        "west": {
+          "texture": "#0",
+          "uv": [
+            0.0,
+            1.0,
+            1.0,
+            15.0
+          ]
+        },
+        "up": {
+          "texture": "#0",
+          "uv": [
+            0.0,
+            1.0,
+            16.0,
+            2.0
+          ]
+        },
+        "down": {
+          "texture": "#0",
+          "uv": [
+            0.0,
+            14.0,
+            16.0,
+            15.0
+          ]
         }
-    ]
+      }
+    }
+  ]
 }

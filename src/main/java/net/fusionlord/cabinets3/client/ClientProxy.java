@@ -8,8 +8,10 @@ import net.fusionlord.cabinets3.client.renderer.RenderingReference;
 import net.fusionlord.cabinets3.tileentity.CabinetTileEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemModelMesher;
+import net.minecraft.client.resources.model.ModelBakery;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.item.Item;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -25,10 +27,14 @@ public class ClientProxy extends CommonProxy
 		ItemModelMesher modelMesher = Minecraft.getMinecraft().getRenderItem().getItemModelMesher();
 
 		Item cabinetItem = Item.getItemFromBlock(Reference.cabinet);
-		modelMesher.register(cabinetItem, CabinetBlock.Types.LEFT.getID(), new ModelResourceLocation(Reference.MOD_ID.concat(":cabinet"), "inventory_left"));
-		modelMesher.register(cabinetItem, CabinetBlock.Types.RIGHT.getID(), new ModelResourceLocation(Reference.MOD_ID.concat(":cabinet"), "inventory_right"));
-		modelMesher.register(cabinetItem, CabinetBlock.Types.DOUBLE.getID(), new ModelResourceLocation(Reference.MOD_ID.concat(":cabinet"), "inventory_double"));
+		ModelBakery.addVariantName(cabinetItem, Reference.MOD_ID.concat(":cabinet_left"), Reference.MOD_ID.concat(":cabinet_right"), Reference.MOD_ID.concat(":cabinet_double"));
+
+		modelMesher.register(cabinetItem, CabinetBlock.Types.LEFT.getID(), new ModelResourceLocation(Reference.MOD_ID.concat(":cabinet_left"), "inventory"));
+		modelMesher.register(cabinetItem, CabinetBlock.Types.RIGHT.getID(), new ModelResourceLocation(Reference.MOD_ID.concat(":cabinet_right"), "inventory"));
+		modelMesher.register(cabinetItem, CabinetBlock.Types.DOUBLE.getID(), new ModelResourceLocation(Reference.MOD_ID.concat(":cabinet_double"), "inventory"));
 
 		RenderingReference.init();
+
+		MinecraftForge.EVENT_BUS.register(new ClientEvents());
 	}
 }

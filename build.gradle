@@ -20,7 +20,7 @@ idea.module.inheritOutputDirs = true
 
 // Requires FusionUtil to run. Just put FusionUtil-deobf.jar in the /libs/ folder or it won't compile.
 version = "3.0"
-group= "cabinets3" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
+group = "cabinets3" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "Cabinets Reloaded"
 
 sourceCompatibility = 1.8
@@ -48,7 +48,7 @@ processResources
                 include 'mcmod.info'
 
                 // replace version and mcversion
-                expand 'version':project.version, 'mcversion':project.minecraft.version
+                expand 'version': project.version, 'mcversion': project.minecraft.version
             }
 
             // copy everything else, thats not the mcmod.info

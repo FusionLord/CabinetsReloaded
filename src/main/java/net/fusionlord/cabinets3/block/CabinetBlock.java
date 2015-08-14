@@ -6,12 +6,11 @@ import net.fusionlord.cabinets3.item.CabinetItem;
 import net.fusionlord.cabinets3.tileentity.CabinetTileEntity;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockContainer;
-import net.minecraft.block.BlockWorkbench;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyEnum;
 import net.minecraft.block.state.BlockState;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.EffectRenderer;
 import net.minecraft.client.particle.EntityDiggingFX;
 import net.minecraft.creativetab.CreativeTabs;
@@ -20,14 +19,19 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
+import net.minecraft.init.Items;
 import net.minecraft.inventory.Container;
-import net.minecraft.item.*;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemAxe;
+import net.minecraft.item.ItemPickaxe;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.*;
 import net.minecraft.world.Explosion;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraftforge.common.ForgeModContainer;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -39,31 +43,6 @@ public class CabinetBlock extends BlockContainer
 {
 	public static final PropertyEnum TYPE = PropertyEnum.create("cabinet_type", Types.class);
 
-	public enum Types implements IStringSerializable
-	{
-		LEFT,
-		RIGHT,
-		DOUBLE
-		;
-
-		@Override
-		public String getName()
-		{
-			return name().toLowerCase();
-		}
-
-		public int getID()
-		{
-			return ordinal();
-		}
-
-		@Override
-		public String toString()
-		{
-			return name().toLowerCase();
-		}
-	}
-
 	public CabinetBlock()
 	{
 		super(Material.wood);
@@ -71,31 +50,7 @@ public class CabinetBlock extends BlockContainer
 		setCreativeTab(CreativeTabs.tabDecorations);
 		setDefaultState(this.blockState.getBaseState().withProperty(TYPE, Types.LEFT));
 		GameRegistry.registerBlock(this, CabinetItem.class, "cabinet");
-	}
-
-	@Override
-	protected BlockState createBlockState()
-	{
-		return new BlockState(this, new IProperty[] {TYPE});
-	}
-
-	@Override
-	public IBlockState getStateFromMeta(int meta)
-	{
-		if (meta < 0 || meta > 2) meta = 0;
-		return getDefaultState().withProperty(TYPE, Types.values()[meta]);
-	}
-
-	@Override
-	public int getMetaFromState(IBlockState state)
-	{
-		return ((Types) state.getValue(TYPE)).getID();
-	}
-
-	@Override
-	public ItemStack getPickBlock(MovingObjectPosition target, World world, BlockPos pos)
-	{
-		return new ItemStack(Item.getItemFromBlock(this), 1, getMetaFromState(world.getBlockState(pos)));
+		useNeighborBrightness = true;
 	}
 
 	public static boolean getBlocked(World world, BlockPos pos, int facing)
@@ -122,6 +77,102 @@ public class CabinetBlock extends BlockContainer
 		return blocked;
 	}
 
+	public int getFixedID(EnumFacing sideHit, int facing)
+	{
+		if (sideHit == EnumFacing.DOWN)
+		{
+			return 0;
+		}
+		if (sideHit == EnumFacing.UP)
+		{
+			return 1;
+		}
+		switch (sideHit)
+		{
+			case NORTH:
+				switch (facing)
+				{
+					case 0:
+						return 3;
+					case 1:
+						return 5;
+					case 2:
+						return 4;
+					case 3:
+						return 2;
+				}
+				break;
+			case SOUTH:
+				switch (facing)
+				{
+					case 0:
+						return 4;
+					case 1:
+						return 2;
+					case 2:
+						return 3;
+					case 3:
+						return 5;
+				}
+				break;
+			case WEST:
+				switch (facing)
+				{
+					case 0:
+						return 5;
+					case 1:
+						return 4;
+					case 2:
+						return 2;
+					case 3:
+						return 3;
+				}
+				break;
+			case EAST:
+				switch (facing)
+				{
+					case 0:
+						return 2;
+					case 1:
+						return 3;
+					case 2:
+						return 5;
+					case 3:
+						return 4;
+				}
+				break;
+		}
+		return 0;
+	}
+
+	@Override
+	protected BlockState createBlockState()
+	{
+		return new BlockState(this, TYPE);
+	}
+
+	@Override
+	public IBlockState getStateFromMeta(int meta)
+	{
+		if (meta < 0 || meta > 2)
+		{
+			meta = 0;
+		}
+		return getDefaultState().withProperty(TYPE, Types.values()[meta]);
+	}
+
+	@Override
+	public int getMetaFromState(IBlockState state)
+	{
+		return ((Types) state.getValue(TYPE)).getID();
+	}
+
+	@Override
+	public ItemStack getPickBlock(MovingObjectPosition target, World world, BlockPos pos)
+	{
+		return new ItemStack(Item.getItemFromBlock(this), 1, getMetaFromState(world.getBlockState(pos)));
+	}
+
 	@SideOnly(Side.CLIENT)
 	public void getSubBlocks(Item itemIn, CreativeTabs tab, List list)
 	{
@@ -132,13 +183,72 @@ public class CabinetBlock extends BlockContainer
 	}
 
 	@Override
+	public boolean isLadder(IBlockAccess world, BlockPos pos, EntityLivingBase entity)
+	{
+		CabinetTileEntity cabinet = (CabinetTileEntity) world.getTileEntity(pos);
+		Vec3 entityPos = new Vec3(entity.posX, entity.posY, entity.posZ);
+		Vec3 pos1 = entityPos.subtract((double) pos.getX(), (double) pos.getY(), (double) pos.getZ());
+		EnumFacing face = EnumFacing.getFacingFromVector((float) pos1.xCoord, (float) pos1.yCoord, (float) pos1.zCoord);
+
+		if (pos1.xCoord > pos1.zCoord)
+		{
+			face = EnumFacing.getFacingFromVector((float) pos1.xCoord, (float) pos1.yCoord, (float) Math.floor(pos1.zCoord));
+		}
+		if (pos1.xCoord < pos1.zCoord)
+		{
+			face = EnumFacing.getFacingFromVector((float) Math.floor(pos1.xCoord), (float) pos1.yCoord, (float) pos1.zCoord);
+		}
+
+		if (face == EnumFacing.UP || face == EnumFacing.DOWN)
+		{
+			return false;
+		}
+		String texture = cabinet.getTexture(getFixedID(face, cabinet.getFacing()));
+		for (String s : Reference.CLIMBABLE)
+		{
+			if (s.equals(texture))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	@Override
+	public void setBlockBoundsBasedOnState(IBlockAccess worldIn, BlockPos pos)
+	{
+		if (!ForgeModContainer.fullBoundingBoxLadders)
+		{
+			ForgeModContainer.fullBoundingBoxLadders = true;
+		}
+//		super.setBlockBoundsBasedOnState(worldIn, pos);
+		float offset = 0.005F;
+		this.setBlockBounds(0.0F + offset, 0F - offset, 0.0F + offset, 1.0F - offset, 1.0F - offset, 1.0F - offset);
+	}
+
+	@Override
+	public void onEntityCollidedWithBlock(World worldIn, BlockPos pos, Entity entityIn)
+	{
+		boolean state = ForgeModContainer.fullBoundingBoxLadders;
+		ForgeModContainer.fullBoundingBoxLadders = true;
+		super.onEntityCollidedWithBlock(worldIn, pos, entityIn);
+		ForgeModContainer.fullBoundingBoxLadders = state;
+	}
+
+	@Override
+	public void onLanded(World worldIn, Entity entityIn)
+	{
+//		super.onLanded(worldIn, entityIn);
+	}
+
+	@Override
 	public boolean removedByPlayer(World world, BlockPos pos, EntityPlayer player, boolean willHarvest)
 	{
 		TileEntity te = world.getTileEntity(pos);
 		if (te != null && te instanceof CabinetTileEntity)
 		{
 			CabinetTileEntity cabinet = (CabinetTileEntity) te;
-			if (cabinet.isOwner(player))
+			if (player.capabilities.isCreativeMode || cabinet.isOwner(player))
 			{
 				IBlockState state = world.getBlockState(pos);
 				int meta = state.getBlock().getMetaFromState(state) << 12;
@@ -148,29 +258,18 @@ public class CabinetBlock extends BlockContainer
 				{
 					silky = EnchantmentHelper.getSilkTouchModifier(player);
 				}
-				if (player.capabilities.isCreativeMode || silky)
+				if ((player.isSneaking() && player.capabilities.isCreativeMode) || silky)
 				{
 					ItemStack stack = new ItemStack(this, 1, meta);
-					boolean storeData = false;
-					for (ItemStack itemStack : cabinet.getContents())
+					NBTTagCompound cabinetTag = new NBTTagCompound();
+					cabinet.writeExtraNBT(cabinetTag);
+					stack.setTagCompound(new NBTTagCompound());
+					stack.setTagInfo("silktouch", cabinetTag);
+					if (!player.inventory.addItemStackToInventory(stack))
 					{
-						if (storeData)
-						{
-							break;
-						}
-						if (itemStack != null)
-						{
-							storeData = true;
-						}
+						player.addChatComponentMessage(new ChatComponentText("Cannot break, you don't have room for it."));
+						return false;
 					}
-					if (storeData || cabinet.getDisplayStack() != null)
-					{
-						NBTTagCompound cabinetTag = new NBTTagCompound();
-						cabinet.writeExtraNBT(cabinetTag);
-						stack.setTagCompound(new NBTTagCompound());
-						stack.setTagInfo("silktouch", cabinetTag);
-					}
-					dropBlockAsItem(world, pos, world.getBlockState(pos), 0);
 				}
 				else
 				{
@@ -178,6 +277,7 @@ public class CabinetBlock extends BlockContainer
 				}
 				world.setBlockToAir(pos);
 				world.removeTileEntity(pos);
+				return true;
 			}
 		}
 		return false;
@@ -192,17 +292,13 @@ public class CabinetBlock extends BlockContainer
 		if (te instanceof CabinetTileEntity)
 		{
 			CabinetTileEntity cabinet = (CabinetTileEntity) te;
-			ret.add(new ItemStack(Reference.cabinet, 1, ((Types)state.getValue(TYPE)).getID()));
+			ret.add(new ItemStack(Reference.cabinet, 1, ((Types) state.getValue(TYPE)).getID()));
 			for (ItemStack stack : cabinet.getContents())
 			{
 				if (stack != null)
 				{
 					ret.add(stack);
 				}
-			}
-			if (cabinet.getDisplayStack() != null)
-			{
-				ret.add(cabinet.getDisplayStack());
 			}
 		}
 		return ret;
@@ -221,97 +317,6 @@ public class CabinetBlock extends BlockContainer
 			}
 		}
 		return Blocks.bedrock.getExplosionResistance(entity);
-	}
-
-	@Override
-	@SideOnly(Side.CLIENT)
-	public boolean addHitEffects(World worldObj, MovingObjectPosition target, EffectRenderer effectRenderer)
-	{
-		Block block = worldObj.getBlockState(target.getBlockPos()).getBlock();
-
-		if (worldObj.isAirBlock(target.getBlockPos()))
-		{
-			float f = 0.1F;
-
-			int side = target.sideHit.getIndex();
-
-			double d1 = target.getBlockPos().getY() + block.getBlockBoundsMinY() - (double) f * side == 0 ? 1 : -1;
-			double d2 = target.getBlockPos().getZ() + block.getBlockBoundsMinZ() - (double) f * side == 2 ? 1 : -1;
-			double d0 = target.getBlockPos().getX() + block.getBlockBoundsMinX() - (double) f * side == 4 ? 1 : -1;
-
-			TileEntity te = worldObj.getTileEntity(target.getBlockPos());
-			if (te instanceof CabinetTileEntity)
-			{
-				CabinetTileEntity cabinet = (CabinetTileEntity) te;
-				block = cabinet.getDisplayStack() != null ? Block.getBlockFromItem(cabinet.getDisplayStack().getItem()) : Blocks.planks;
-			}
-			effectRenderer.addEffect(new EntityDiggingFX.Factory().getEntityFX(0,
-											 worldObj,
-											 d0,
-											 d1,
-											 d2,
-											 0.0D,
-											 0.0D,
-											 0.0D,
-											 Block.getIdFromBlock(block)
-									 )
-					/*.applyColourMultiplier(target.getBlockPos().getX(), target.getBlockPos().getY(), target.getBlockPos().getZ()).multiplyVelocity(0.2F)*/
-					.multipleParticleScaleBy(0.6F));
-		}
-		return true;
-	}
-
-	@Override
-	@SideOnly(Side.CLIENT)
-	public boolean addDestroyEffects(World world, BlockPos pos, EffectRenderer effectRenderer)
-	{
-		int x = pos.getX();
-		int y = pos.getY();
-		int z = pos.getZ();
-		Block block = world.getBlockState(pos).getBlock();
-
-		TileEntity te = world.getTileEntity(pos);
-		if (te instanceof CabinetTileEntity)
-		{
-			CabinetTileEntity cabinet = (CabinetTileEntity) te;
-			if (cabinet.getDisplayStack() != null)
-			{
-				block = Block.getBlockFromItem(cabinet.getDisplayStack().getItem());
-			}
-			else
-			{
-				block = Blocks.planks;
-			}
-		}
-
-		byte b0 = 4;
-
-		for (int i1 = 0; i1 < b0; ++i1)
-		{
-			for (int j1 = 0; j1 < b0; ++j1)
-			{
-				for (int k1 = 0; k1 < b0; ++k1)
-				{
-					double d0 = (double) x + ((double) i1 + 0.5D) / (double) b0;
-					double d1 = (double) y + ((double) j1 + 0.5D) / (double) b0;
-					double d2 = (double) z + ((double) k1 + 0.5D) / (double) b0;
-
-					effectRenderer.addEffect(new EntityDiggingFX.Factory().getEntityFX(0,
-																					   world,
-																					   d0,
-																					   d1,
-																					   d2,
-																					   0.0D,
-																					   0.0D,
-																					   0.0D,
-																					   Block.getIdFromBlock(block)
-											 )
-					/*.applyColourMultiplier(target.getBlockPos().getX(), target.getBlockPos().getY(), target.getBlockPos().getZ()).multiplyVelocity(0.2F)*/
-													 .multipleParticleScaleBy(0.6F));
-				}
-			}
-		}
-		return true;
 	}
 
 	@Override
@@ -336,6 +341,12 @@ public class CabinetBlock extends BlockContainer
 	public int getRenderType()
 	{
 		return 0;
+	}
+
+	@Override
+	public boolean isOpaqueCube()
+	{
+		return false;
 	}
 
 	@Override
@@ -371,12 +382,6 @@ public class CabinetBlock extends BlockContainer
 	}
 
 	@Override
-	public boolean isOpaqueCube()
-	{
-		return false;
-	}
-
-	@Override
 	public void onNeighborBlockChange(World world, BlockPos pos, IBlockState state, Block block)
 	{
 		int powered = world.isBlockIndirectlyGettingPowered(pos);
@@ -397,14 +402,25 @@ public class CabinetBlock extends BlockContainer
 			return true;
 		}
 		CabinetTileEntity cabinet = (CabinetTileEntity) te;
-		if (cabinet.getDisplayStack() != null)
+		String topTexture = cabinet.getTexture(getFixedID(side, cabinet.getFacing()));
+		if (topTexture.equals("minecraft:blocks/crafting_table_top"))
 		{
-			Block baseBlock = Block.getBlockFromItem(cabinet.getDisplayStack().getItem());
-			if (baseBlock != null && baseBlock instanceof BlockWorkbench && side == EnumFacing.UP)
-			{
-				player.openGui(CabinetsReloaded.instance, 1, world, x, y, z);
-				return true;
-			}
+			player.openGui(CabinetsReloaded.instance, 1, world, x, y, z);
+			return true;
+		}
+
+		if (topTexture.equals("minecraft:blocks/water_still") && player.getHeldItem() != null && player.getHeldItem().getItem() == Items.bucket)
+		{
+			player.inventory.consumeInventoryItem(Items.bucket);
+			player.inventory.addItemStackToInventory(new ItemStack(Items.water_bucket));
+			return true;
+		}
+
+		if (topTexture.equals("minecraft:blocks/lava_still") && player.getHeldItem() != null && player.getHeldItem().getItem() == Items.bucket)
+		{
+			player.inventory.consumeInventoryItem(Items.bucket);
+			player.inventory.addItemStackToInventory(new ItemStack(Items.lava_bucket));
+			return true;
 		}
 
 		if (cabinet.getOwner() == null)
@@ -487,52 +503,125 @@ public class CabinetBlock extends BlockContainer
 	}
 
 	@Override
-	public int getLightValue(IBlockAccess world, BlockPos pos)
-	{
-		TileEntity te = world.getTileEntity(pos);
-		if (te instanceof CabinetTileEntity)
-		{
-			CabinetTileEntity cabinet = (CabinetTileEntity) te;
-			if (cabinet.getDisplayStack() != null)
-			{
-				Block baseBlock = Block.getBlockFromItem(cabinet.getDisplayStack().getItem());
-				if (baseBlock != null)
-				{
-					return baseBlock.getLightValue();
-				}
-			}
-		}
-		return getLightValue();
-	}
-
-	@Override
-	public float getBlockHardness(World world, BlockPos pos)
-	{
-		TileEntity te = world.getTileEntity(pos);
-		if (te instanceof CabinetTileEntity)
-		{
-			CabinetTileEntity cabinet = (CabinetTileEntity) te;
-			if (cabinet.getDisplayStack() != null)
-			{
-				Block baseBlock = Block.getBlockFromItem(cabinet.getDisplayStack().getItem());
-				if (baseBlock != null)
-				{
-					return baseBlock.getBlockHardness(world, pos);
-				}
-			}
-		}
-		return blockHardness;
-	}
-
-	@Override
 	public int damageDropped(IBlockState state)
 	{
-		return ((Types)state.getValue(TYPE)).getID();
+		return ((Types) state.getValue(TYPE)).getID();
 	}
 
 	@Override
 	public boolean shouldSideBeRendered(IBlockAccess worldIn, BlockPos pos, EnumFacing side)
 	{
 		return false;
+	}
+
+	@Override
+	public int getLightValue(IBlockAccess world, BlockPos pos)
+	{
+		CabinetTileEntity cabinet = (CabinetTileEntity) world.getTileEntity(pos);
+		if (cabinet != null)
+		{
+			for (String s : Reference.LIGHTS)
+			{
+				if (cabinet.getTexture(0).contains(s)
+						    && cabinet.getTexture(1).contains(s)
+						    && cabinet.getTexture(2).contains(s)
+						    && cabinet.getTexture(3).contains(s)
+						    && cabinet.getTexture(4).contains(s)
+						    && cabinet.getTexture(5).contains(s))
+				{
+					return 15;
+				}
+			}
+		}
+		return 0;
+	}
+
+	@Override
+	public boolean addDestroyEffects(World world, BlockPos pos, EffectRenderer effectRenderer)
+	{
+		CabinetTileEntity cabinet = (CabinetTileEntity) world.getTileEntity(pos);
+		if (cabinet != null)
+		{
+			int x = pos.getX();
+			int y = pos.getY();
+			int z = pos.getZ();
+			byte b0 = 4;
+
+			for (int i1 = 0; i1 < b0; ++i1)
+			{
+				for (int j1 = 0; j1 < b0; ++j1)
+				{
+					for (int k1 = 0; k1 < b0; ++k1)
+					{
+						double d0 = (double) x + ((double) i1 + 0.5D) / (double) b0;
+						double d1 = (double) y + ((double) j1 + 0.5D) / (double) b0;
+						double d2 = (double) z + ((double) k1 + 0.5D) / (double) b0;
+						EntityDiggingFX fx = (EntityDiggingFX) new EntityDiggingFX.Factory().getEntityFX(0, world, d0, d1, d2, 0.0D, 0.0D, 0.0D, Block.getIdFromBlock(world.getBlockState(pos).getBlock()));
+						fx.multipleParticleScaleBy(0.6F);
+						fx.setParticleIcon(Minecraft.getMinecraft().getTextureMapBlocks().getAtlasSprite(cabinet.getTexture(1)));
+
+						effectRenderer.addEffect(fx);
+					}
+				}
+			}
+		}
+		return true;
+	}
+
+	@Override
+	public boolean addHitEffects(World world, MovingObjectPosition target, EffectRenderer effectRenderer)
+	{
+		CabinetTileEntity cabinet = (CabinetTileEntity) world.getTileEntity(target.getBlockPos());
+		if (cabinet != null)
+		{
+			int x = target.getBlockPos().getX();
+			int y = target.getBlockPos().getY();
+			int z = target.getBlockPos().getZ();
+			byte b0 = 4;
+
+			for (int i1 = 0; i1 < b0; ++i1)
+			{
+				for (int j1 = 0; j1 < b0; ++j1)
+				{
+					for (int k1 = 0; k1 < b0; ++k1)
+					{
+						double d0 = (double) x + ((double) i1 + 0.5D) / (double) b0;
+						double d1 = (double) y + ((double) j1 + 0.5D) / (double) b0;
+						double d2 = (double) z + ((double) k1 + 0.5D) / (double) b0;
+						EntityDiggingFX fx = (EntityDiggingFX) new EntityDiggingFX.Factory().getEntityFX(0, world, d0, d1, d2, 0.0D, 0.0D, 0.0D, Block.getIdFromBlock(world.getBlockState(target.getBlockPos()).getBlock()));
+						fx.multipleParticleScaleBy(0.6F);
+						int texID = getFixedID(target.sideHit, cabinet.getFacing());
+						fx.setParticleIcon(Minecraft.getMinecraft().getTextureMapBlocks().getAtlasSprite(cabinet.getTexture(texID)));
+
+						effectRenderer.addEffect(fx);
+					}
+				}
+			}
+		}
+		return true;
+	}
+
+	public enum Types implements IStringSerializable
+	{
+		LEFT,
+		RIGHT,
+		DOUBLE;
+
+		@Override
+		public String getName()
+		{
+			return name().toLowerCase();
+		}
+
+		public int getID()
+		{
+			return ordinal();
+		}
+
+		@Override
+		public String toString()
+		{
+			return name().toLowerCase();
+		}
 	}
 }
