@@ -48,12 +48,6 @@ public class CabinetSkinSelectionGui extends DynGUIScreen
 	}
 
 	@Override
-	public void initGui()
-	{
-		super.initGui();
-	}
-
-	@Override
 	protected void addInitialElements(List<IGuiElement> elements)
 	{
 		int x = 5;

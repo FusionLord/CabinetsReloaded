@@ -279,7 +279,9 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 		{
 			if (sync++ % 2400 == 1 || needsUpdate)
 			{
-				sync();
+				Reference.packetHandler.sendToAllAround(new CabinetSyncPacket(this, CabinetSyncPacket.GENERAL), new NetworkRegistry.TargetPoint(worldObj.provider.getDimensionId(), pos.getX(), pos.getY(), pos.getZ(), 64D));
+				Reference.packetHandler.sendToAllAround(new CabinetSyncPacket(this, CabinetSyncPacket.INVENTORY), new NetworkRegistry.TargetPoint(worldObj.provider.getDimensionId(), pos.getX(), pos.getY(), pos.getZ(), 64D));
+				Reference.packetHandler.sendToAllAround(new CabinetSyncPacket(this, CabinetSyncPacket.TEXTURES), new NetworkRegistry.TargetPoint(worldObj.provider.getDimensionId(), pos.getX(), pos.getY(), pos.getZ(), 64D));
 				needsUpdate = false;
 			}
 		}
@@ -383,13 +385,6 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 			return new ChatComponentText("Unclaimed");
 		}
 		return new ChatComponentText(ownerName.concat("\'s"));
-	}
-
-	protected void sync()
-	{
-		Reference.packetHandler.sendToAllAround(new CabinetSyncPacket(this, CabinetSyncPacket.GENERAL), new NetworkRegistry.TargetPoint(worldObj.provider.getDimensionId(), pos.getX(), pos.getY(), pos.getZ(), 64D));
-		Reference.packetHandler.sendToAllAround(new CabinetSyncPacket(this, CabinetSyncPacket.INVENTORY), new NetworkRegistry.TargetPoint(worldObj.provider.getDimensionId(), pos.getX(), pos.getY(), pos.getZ(), 64D));
-		Reference.packetHandler.sendToAllAround(new CabinetSyncPacket(this, CabinetSyncPacket.TEXTURES), new NetworkRegistry.TargetPoint(worldObj.provider.getDimensionId(), pos.getX(), pos.getY(), pos.getZ(), 64D));
 	}
 
 	public UUID getOwner()

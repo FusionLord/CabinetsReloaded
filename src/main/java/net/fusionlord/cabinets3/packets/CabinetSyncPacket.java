@@ -13,10 +13,10 @@ import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 
 public class CabinetSyncPacket implements IMessage
 {
+	public static final byte GENERAL = 0, INVENTORY = 1, TEXTURES = 2;
 	BlockPos pos;
 	NBTTagCompound tagCompound;
 	byte part;
-	public static final byte GENERAL = 0, INVENTORY = 1, TEXTURES = 2;
 
 	public CabinetSyncPacket() {}
 
@@ -66,17 +66,19 @@ public class CabinetSyncPacket implements IMessage
 			System.out.println("Cabinet = " + cabinet);
 			System.out.println("part = " + message.part);
 			System.out.println("TAG = " + message.tagCompound);
-
-			switch (message.part)
+			if (cabinet != null)
 			{
-				case GENERAL:
-					cabinet.readGeneralNBT(message.tagCompound);
-					break;
-				case INVENTORY:
-					cabinet.readInventoryNBT(message.tagCompound);
-					break;
-				case TEXTURES:
-					cabinet.readTextureNBT(message.tagCompound);
+				switch (message.part)
+				{
+					case GENERAL:
+						cabinet.readGeneralNBT(message.tagCompound);
+						break;
+					case INVENTORY:
+						cabinet.readInventoryNBT(message.tagCompound);
+						break;
+					case TEXTURES:
+						cabinet.readTextureNBT(message.tagCompound);
+				}
 			}
 			return null;
 		}
