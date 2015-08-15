@@ -12,14 +12,13 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.StatCollector;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class CabinetGui extends DynGUIContainer<CabinetContainer>
 {
-	private GuiButton button0;
-	private GuiButton button1;
-	private GuiButton button2;
-	private GuiButton button3;
+	private ButtonGuiElement unclaim, show_hide, public_private, skins;
 	private EntityPlayer player;
 	private CabinetTileEntity cabinet;
 
@@ -38,21 +37,27 @@ public class CabinetGui extends DynGUIContainer<CabinetContainer>
 		sync();
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void addInitialElements(List<IGuiElement> elements)
 	{
-		int posy = (height - ySize) / 2 - 13;
+		int bwidth = 60;
+		int bheight = 60 / 4;
+		int posX = 167 - 60;
+		int posy = 15;
 
-		button0 = new ButtonGuiElement(0, width / 2 + 24, posy + 28, 55, 14, "Unclaim", elements, buttonList);
-		button1 = new ButtonGuiElement(1, width / 2 + 24, posy + 42, 55, 14, cabinet.isHidden() ? "Show" : "Hide", elements, buttonList);
-		button2 = new ButtonGuiElement(2, width / 2 + 24, posy + 56, 55, 14, cabinet.isLocked() ? "Public" : "Private", elements, buttonList);
-		button3 = new ButtonGuiElement(3, width / 2 + 24, posy + 70, 55, 14, "Skin", elements, buttonList);
+		buttonList.add(unclaim = new ButtonGuiElement(buttonList.size(), posX, posy, bwidth, bheight, "Unclaim", true, true));
+		buttonList.add(show_hide = new ButtonGuiElement(buttonList.size(), posX, posy += bheight, bwidth, bheight, cabinet.isHidden() ? "Show" : "Hide", true, true));
+		buttonList.add(public_private = new ButtonGuiElement(buttonList.size(), posX, posy += bheight, bwidth, bheight, cabinet.isLocked() ? "Public" : "Private", true, true));
+		buttonList.add(skins = new ButtonGuiElement(buttonList.size(), posX, posy + bheight, bwidth, bheight, "Skin", true, true));
+
+		elements.addAll((Collection<? extends IGuiElement>) buttonList.stream().filter(o -> o instanceof IGuiElement).map(o -> o).collect(Collectors.toList()));
 
 		boolean enabled = cabinet.getOwner() != null && cabinet.getOwner().equals(player.getPersistentID());
-		button0.enabled = enabled;
-		button1.enabled = enabled;
-		button2.enabled = enabled;
-		button3.enabled = enabled;
+		unclaim.enabled = enabled;
+		show_hide.enabled = enabled;
+		public_private.enabled = enabled;
+		skins.enabled = enabled;
 	}
 
 
@@ -61,28 +66,6 @@ public class CabinetGui extends DynGUIContainer<CabinetContainer>
 	{
 		sync();
 		super.onGuiClosed();
-	}
-
-	protected void actionPerformed(GuiButton button)
-	{
-		if (button == button0)
-		{
-			cabinet.setOwner(null);
-			player.closeScreen();
-		}
-		else if (button == button1)
-		{
-			cabinet.setHidden(!cabinet.isHidden());
-		}
-		else if (button == button2)
-		{
-			cabinet.setLocked(!cabinet.isLocked());
-		}
-		else if (button == button3)
-		{
-			player.openGui(CabinetsReloaded.instance, 2, player.worldObj, cabinet.getPos().getX(), cabinet.getPos().getY(), cabinet.getPos().getZ());
-		}
-		sync();
 	}
 
 	private void sync()
@@ -104,25 +87,48 @@ public class CabinetGui extends DynGUIContainer<CabinetContainer>
 	{
 		super.updateScreen();
 
-		button1.displayString = cabinet.isHidden() ? "Show" : "Hide";
-		button2.displayString = cabinet.isLocked() ? "Public" : "Private";
+		show_hide.displayString = cabinet.isHidden() ? "Show" : "Hide";
+		public_private.displayString = cabinet.isLocked() ? "Public" : "Private";
 
 		boolean enabled = cabinet.getOwner() != null && cabinet.getOwner().equals(player.getPersistentID());
-		if (button0.enabled != enabled)
+		if (unclaim.enabled != enabled)
 		{
-			button0.enabled = enabled;
+			unclaim.enabled = enabled;
 		}
-		if (button1.enabled != enabled)
+		if (show_hide.enabled != enabled)
 		{
-			button1.enabled = enabled;
+			show_hide.enabled = enabled;
 		}
-		if (button2.enabled != enabled)
+		if (public_private.enabled != enabled)
 		{
-			button2.enabled = enabled;
+			public_private.enabled = enabled;
 		}
-		if (button3.enabled != enabled)
+		if (skins.enabled != enabled)
 		{
-			button3.enabled = enabled;
+			skins.enabled = enabled;
 		}
+	}
+
+	@Override
+	public void actionPerformed(GuiButton button)
+	{
+		if (button == unclaim)
+		{
+			cabinet.setOwner(null);
+			player.closeScreen();
+		}
+		else if (button == show_hide)
+		{
+			cabinet.setHidden(!cabinet.isHidden());
+		}
+		else if (button == public_private)
+		{
+			cabinet.setLocked(!cabinet.isLocked());
+		}
+		else if (button == skins)
+		{
+			player.openGui(CabinetsReloaded.instance, 2, player.worldObj, cabinet.getPos().getX(), cabinet.getPos().getY(), cabinet.getPos().getZ());
+		}
+		sync();
 	}
 }

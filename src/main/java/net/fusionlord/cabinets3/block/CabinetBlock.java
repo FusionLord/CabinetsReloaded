@@ -214,7 +214,6 @@ public class CabinetBlock extends BlockContainer
 		{
 			ForgeModContainer.fullBoundingBoxLadders = true;
 		}
-//		super.setBlockBoundsBasedOnState(worldIn, pos);
 		float offset = 0.005F;
 		this.setBlockBounds(0.0F + offset, 0F - offset, 0.0F + offset, 1.0F - offset, 1.0F - offset, 1.0F - offset);
 	}
@@ -226,12 +225,6 @@ public class CabinetBlock extends BlockContainer
 		ForgeModContainer.fullBoundingBoxLadders = true;
 		super.onEntityCollidedWithBlock(worldIn, pos, entityIn);
 		ForgeModContainer.fullBoundingBoxLadders = state;
-	}
-
-	@Override
-	public void onLanded(World worldIn, Entity entityIn)
-	{
-//		super.onLanded(worldIn, entityIn);
 	}
 
 	@Override
@@ -461,7 +454,7 @@ public class CabinetBlock extends BlockContainer
 			{
 				cabinet.readExtraNBT(stack.getTagCompound().getCompoundTag("silktouch"));
 				cabinet.setFacing(facing);
-				cabinet.sync();
+				cabinet.markForUpdate();
 			}
 		}
 	}

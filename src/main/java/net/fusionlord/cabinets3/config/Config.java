@@ -26,8 +26,8 @@ public class Config
 		Reference.LIGHTS = config.getStringList("Cabinet Variants that give off light.", Configuration.CATEGORY_GENERAL, new String[] {"minecraft:blocks/glowstone", "minecraft:blocks/lava_still"}, "Any textures that should give off light level 15.");
 		Reference.BLACKLIST = config.getStringList("Terms to blacklist.", Configuration.CATEGORY_GENERAL, new String[] {"_flow", "pane_top", "pane_side", "_stem"}, "Any textures that should be blacklisted.");
 		Reference.CLIMBABLE = config.getStringList("Climbable textures.", Configuration.CATEGORY_GENERAL, new String[] {"minecraft:blocks/ladder", "minecraft:blocks/vine"}, "Any textures that should be climbable. These render background.");
-		Reference.COLORABLE = config.getStringList("Colorable textures.", Configuration.CATEGORY_GENERAL, new String[] {"vine", "leaves", "grass", "lily", "destroy_stage"}, "Any textures that need coloring per biome.");
-		Reference.DOUBLERENDER = config.getStringList("Remder Background.", Configuration.CATEGORY_GENERAL, new String[] {"destroy_stage"}, "Any textures that should render over default skin.");
+		Reference.COLORABLE = config.getStringList("Colorable textures.", Configuration.CATEGORY_GENERAL, new String[] {"vine", "leaves", "lily", "destroy_stage", "reeds"}, "Any textures that need coloring per biome.");
+		Reference.DOUBLERENDER = config.getStringList("Render Background.", Configuration.CATEGORY_GENERAL, new String[] {"destroy_stage", "reeds"}, "Any textures that should render over default skin.");
 
 		save();
 	}

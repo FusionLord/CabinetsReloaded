@@ -57,7 +57,7 @@ public class CabinetGuiPacket implements IMessage
 
 					cabinet.setLocked(message.isLocked);
 					cabinet.setHidden(message.hideItems);
-					cabinet.sync();
+					cabinet.markForUpdate();
 				}
 			}
 

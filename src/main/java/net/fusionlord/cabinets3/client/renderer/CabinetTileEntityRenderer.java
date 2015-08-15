@@ -100,11 +100,19 @@ public class CabinetTileEntityRenderer extends TileEntitySpecialRenderer
 				{
 					GlStateManager.translate(m * 7.5f, m * 1f, m * 7.5f);
 					GlStateManager.rotate(a, 0f, 1f, 0f);
+					if (Reference.isTextureClimbable(texture.getIconName()) || Reference.isTextureDoubleRendered(texture.getIconName()) || texture.getIconName().toLowerCase().contains("items"))
+					{
+						RenderingUtil.renderPartWithIcon(RenderingReference.model, part.name().concat(String.valueOf(i)), Minecraft.getMinecraft().getTextureMapBlocks().getTextureExtry(cabinet.getDefaultTexture()), worldRenderer, -1);
+					}
 					RenderingUtil.renderPartWithIcon(RenderingReference.model, part.name().concat(String.valueOf(0)), texture, worldRenderer, color);
 					GlStateManager.rotate(a, 0f, -1f, 0f);
 					GlStateManager.translate(m * -7.5f, m * -1f, m * -7.5f);
 					GlStateManager.translate(m * -7.5f, m * 1f, m * 7.5f);
 					GlStateManager.rotate(a, 0f, -1f, 0f);
+					if (Reference.isTextureClimbable(texture.getIconName()) || Reference.isTextureDoubleRendered(texture.getIconName()) || texture.getIconName().toLowerCase().contains("items"))
+					{
+						RenderingUtil.renderPartWithIcon(RenderingReference.model, part.name().concat(String.valueOf(i)), Minecraft.getMinecraft().getTextureMapBlocks().getTextureExtry(cabinet.getDefaultTexture()), worldRenderer, -1);
+					}
 					RenderingUtil.renderPartWithIcon(RenderingReference.model, part.name().concat(String.valueOf(1)), texture, worldRenderer, color);
 					GlStateManager.rotate(a, 0f, 1f, 0f);
 					GlStateManager.translate(m * 7.5f, m * -1f, m * -7.5f);
@@ -114,6 +122,10 @@ public class CabinetTileEntityRenderer extends TileEntitySpecialRenderer
 					GlStateManager.translate(m * 7.5f, m * 1f, m * 7.5f);
 					GlStateManager.rotate(a, 0f, 1f, 0f);
 					GlStateManager.rotate(180, 0F, 1F, 0F);
+					if (Reference.isTextureClimbable(texture.getIconName()) || Reference.isTextureDoubleRendered(texture.getIconName()) || texture.getIconName().toLowerCase().contains("items"))
+					{
+						RenderingUtil.renderPartWithIcon(RenderingReference.model, part.name().concat(String.valueOf(i)), Minecraft.getMinecraft().getTextureMapBlocks().getTextureExtry(cabinet.getDefaultTexture()), worldRenderer, -1);
+					}
 					RenderingUtil.renderPartWithIcon(RenderingReference.model, part.name().concat(String.valueOf(0)), texture, worldRenderer, color);
 					GlStateManager.rotate(180, 0F, -1F, 0F);
 					GlStateManager.rotate(a, 0f, -1F, 0f);
@@ -124,6 +136,10 @@ public class CabinetTileEntityRenderer extends TileEntitySpecialRenderer
 					GlStateManager.translate(m * -7.5f, m * 1f, m * 7.5f);
 					GlStateManager.rotate(a, 0f, -1f, 0f);
 					GlStateManager.rotate(180, 0F, 1F, 0F);
+					if (Reference.isTextureClimbable(texture.getIconName()) || Reference.isTextureDoubleRendered(texture.getIconName()) || texture.getIconName().toLowerCase().contains("items"))
+					{
+						RenderingUtil.renderPartWithIcon(RenderingReference.model, part.name().concat(String.valueOf(i)), Minecraft.getMinecraft().getTextureMapBlocks().getTextureExtry(cabinet.getDefaultTexture()), worldRenderer, -1);
+					}
 					RenderingUtil.renderPartWithIcon(RenderingReference.model, part.name().concat(String.valueOf(0)), texture, worldRenderer, color);
 					GlStateManager.rotate(180, 0F, -1F, 0F);
 					GlStateManager.rotate(a, 0f, 1f, 0f);
@@ -131,9 +147,8 @@ public class CabinetTileEntityRenderer extends TileEntitySpecialRenderer
 				}
 				else if (!(part == CabinetParts.Left_Door || part == CabinetParts.Right_Door || part == CabinetParts.Half_Door))
 				{
-					if (Reference.isTextureClimbable(texture.getIconName()) || Reference.isTextureDoubleRendered(texture.getIconName()))
+					if (Reference.isTextureClimbable(texture.getIconName()) || Reference.isTextureDoubleRendered(texture.getIconName()) || texture.getIconName().toLowerCase().contains("items"))
 					{
-						GlStateManager.translate(0.001f, 0f, 0f);
 						RenderingUtil.renderPartWithIcon(RenderingReference.model, part.name().concat(String.valueOf(i)), Minecraft.getMinecraft().getTextureMapBlocks().getTextureExtry(cabinet.getDefaultTexture()), worldRenderer, -1);
 					}
 					RenderingUtil.renderPartWithIcon(RenderingReference.model, part.name().concat(String.valueOf(i)), texture, worldRenderer, color);

@@ -44,6 +44,7 @@ public class CabinetSyncPacket implements IMessage
 		buffer.writeLong(pos.toLong());
 		buffer.writeByte(part);
 		ByteBufUtils.writeTag(buffer, tagCompound);
+		System.out.println(tagCompound);
 	}
 
 	@Override
@@ -52,6 +53,7 @@ public class CabinetSyncPacket implements IMessage
 		pos = BlockPos.fromLong(buffer.readLong());
 		part = buffer.readByte();
 		tagCompound = ByteBufUtils.readTag(buffer);
+		System.out.println(tagCompound);
 	}
 
 	public static class Handler implements IMessageHandler<CabinetSyncPacket, IMessage>
@@ -61,6 +63,10 @@ public class CabinetSyncPacket implements IMessage
 		{
 			World world = Minecraft.getMinecraft().theWorld;
 			CabinetTileEntity cabinet = (CabinetTileEntity) world.getTileEntity(message.pos);
+			System.out.println("Cabinet = " + cabinet);
+			System.out.println("part = " + message.part);
+			System.out.println("TAG = " + message.tagCompound);
+
 			switch (message.part)
 			{
 				case GENERAL:

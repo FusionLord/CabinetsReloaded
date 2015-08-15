@@ -56,7 +56,7 @@ public class CabinetTextureSyncPacket implements IMessage
 
 			CabinetTileEntity cabinet = (CabinetTileEntity) ctx.getServerHandler().playerEntity.worldObj.getTileEntity(message.location);
 			cabinet.setTextures(message.textures);
-			cabinet.sync();
+			cabinet.markForUpdate();
 			return null;
 		}
 	}

@@ -36,6 +36,7 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 	private int numUsingPlayers;
 	private int sync = 1;
 	private String ownerName = "";
+	private boolean needsUpdate = false;
 
 	public CabinetTileEntity()
 	{
@@ -95,6 +96,7 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 
 		return itemStack;
 	}
+
 
 	@Override
 	public void setInventorySlotContents(int slot, ItemStack itemStack)
@@ -275,9 +277,10 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 		double z = (double) pos.getZ() + 0.5D;
 		if (!worldObj.isRemote)
 		{
-			if (sync++ % 2400 == 1)
+			if (sync++ % 2400 == 1 || needsUpdate)
 			{
 				sync();
+				needsUpdate = false;
 			}
 		}
 
@@ -382,7 +385,7 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 		return new ChatComponentText(ownerName.concat("\'s"));
 	}
 
-	public void sync()
+	protected void sync()
 	{
 		Reference.packetHandler.sendToAllAround(new CabinetSyncPacket(this, CabinetSyncPacket.GENERAL), new NetworkRegistry.TargetPoint(worldObj.provider.getDimensionId(), pos.getX(), pos.getY(), pos.getZ(), 64D));
 		Reference.packetHandler.sendToAllAround(new CabinetSyncPacket(this, CabinetSyncPacket.INVENTORY), new NetworkRegistry.TargetPoint(worldObj.provider.getDimensionId(), pos.getX(), pos.getY(), pos.getZ(), 64D));
@@ -406,7 +409,7 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 			this.owner = player.getPersistentID();
 			this.ownerName = player.getDisplayNameString();
 		}
-		sync();
+		markForUpdate();
 	}
 
 	public boolean isOwner(EntityPlayer player)
@@ -512,5 +515,16 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 	public String getDefaultTexture()
 	{
 		return "minecraft:blocks/planks_oak";
+	}
+
+	public void markForUpdate()
+	{
+		needsUpdate = true;
+	}
+
+	public void clearOwner()
+	{
+		this.owner = null;
+		this.ownerName = null;
 	}
 }

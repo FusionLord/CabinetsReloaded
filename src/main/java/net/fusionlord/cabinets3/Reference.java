@@ -88,16 +88,16 @@ public class Reference
 				if (entry.getValue() instanceof TextureAtlasSprite)
 				{
 					TextureAtlasSprite tex = (TextureAtlasSprite) entry.getValue();
-					if (tex.getIconName().contains("blocks"))
+					for (String s : BLACKLIST)
 					{
-						for (String s : BLACKLIST)
+						if (tex.getIconName().contains(s))
 						{
-							if (tex.getIconName().contains(s))
-							{
-								continue whileloop;
-							}
+							continue whileloop;
 						}
-						SKINS.add(tex);
+						else if (!SKINS.contains(tex))
+						{
+							SKINS.add(tex);
+						}
 					}
 				}
 			}
@@ -107,7 +107,7 @@ public class Reference
 		{
 			e.printStackTrace();
 		}
-		SKINS.sort((o1, o2) -> o1.getIconName().toUpperCase().compareTo(o2.getIconName().toUpperCase()));
+		SKINS.sort((o1, o2) -> o1.getIconName().substring(o1.getIconName().lastIndexOf("/") != -1 ? o1.getIconName().lastIndexOf("/") : o1.getIconName().lastIndexOf(":")).toLowerCase().compareTo(o2.getIconName().substring(o2.getIconName().lastIndexOf("/") != -1 ? o2.getIconName().lastIndexOf("/") : o2.getIconName().lastIndexOf(":")).toLowerCase()));
 	}
 
 	public static ResourceLocation getResource(String resource)
@@ -158,7 +158,7 @@ public class Reference
 				SKINS.sort((o1, o2) -> o1.getIconName().substring(0, o1.getIconName().indexOf(":")).toUpperCase().compareTo(o2.getIconName().substring(0, o2.getIconName().indexOf(":")).toUpperCase()));
 				break;
 			default:
-				SKINS.sort((o1, o2) -> o1.getIconName().toUpperCase().compareTo(o2.getIconName().toUpperCase()));
+				SKINS.sort((o1, o2) -> o1.getIconName().substring(o1.getIconName().lastIndexOf("/") != -1 ? o1.getIconName().lastIndexOf("/") : o1.getIconName().lastIndexOf(":")).toLowerCase().compareTo(o2.getIconName().substring(o2.getIconName().lastIndexOf("/") != -1 ? o2.getIconName().lastIndexOf("/") : o2.getIconName().lastIndexOf(":")).toLowerCase()));
 				break;
 		}
 	}
