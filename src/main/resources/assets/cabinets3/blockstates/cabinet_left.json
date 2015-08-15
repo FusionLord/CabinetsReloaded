@@ -1,0 +1,12 @@
+{
+  "forge_marker": 1,
+  "defaults": {
+    "model": "cabinets3:cabinet",
+    "y": 180
+  },
+  "variants": {
+    "inventory": {
+      "submodel": "cabinets3:cabinet_left"
+    }
+  }
+}

@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class Reference
 {
@@ -49,6 +50,7 @@ public class Reference
 	public static String[] BLACKLIST;
 	public static String[] CLIMBABLE;
 	public static String[] COLORABLE;
+	public static String[] DOUBLERENDER;
 
 	public static void init()
 	{
@@ -116,5 +118,48 @@ public class Reference
 	public static void addCabinetRecipe()
 	{
 		GameRegistry.addRecipe(new CabinetRecipe());
+	}
+
+	public static boolean isTextureDoubleRendered(String texture)
+	{
+		for (String s : DOUBLERENDER)
+		{
+			if (texture.toLowerCase().contains(s))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static boolean isTextureClimbable(String texture)
+	{
+		for (String s : CLIMBABLE)
+		{
+			if (texture.toLowerCase().contains(s))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static List<TextureAtlasSprite> getSkinsForSearch(String text)
+	{
+		return text.isEmpty() ? SKINS : SKINS.stream().filter(texture -> texture.getIconName().toLowerCase().contains(text.toLowerCase())).collect(Collectors.toList());
+	}
+
+	public static void sortTextures(int sortType)
+	{
+		switch (sortType)
+		{
+			case 1:
+				System.out.println("Sorting by mod!");
+				SKINS.sort((o1, o2) -> o1.getIconName().substring(0, o1.getIconName().indexOf(":")).toUpperCase().compareTo(o2.getIconName().substring(0, o2.getIconName().indexOf(":")).toUpperCase()));
+				break;
+			default:
+				SKINS.sort((o1, o2) -> o1.getIconName().toUpperCase().compareTo(o2.getIconName().toUpperCase()));
+				break;
+		}
 	}
 }

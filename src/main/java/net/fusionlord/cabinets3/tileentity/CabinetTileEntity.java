@@ -55,7 +55,7 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 			}
 			else
 			{
-				tex = "minecraft:blocks/planks_oak";
+				tex = getDefaultTexture();
 			}
 			textures[part.ordinal()] = tex;
 		}
@@ -507,5 +507,10 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 	{
 		textures = newTextures;
 		worldObj.checkLight(getPos());
+	}
+
+	public String getDefaultTexture()
+	{
+		return "minecraft:blocks/planks_oak";
 	}
 }

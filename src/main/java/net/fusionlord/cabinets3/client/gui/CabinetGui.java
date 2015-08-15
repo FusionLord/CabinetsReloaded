@@ -6,8 +6,8 @@ import net.fusionlord.cabinets3.inventory.CabinetContainer;
 import net.fusionlord.cabinets3.packets.CabinetGuiPacket;
 import net.fusionlord.cabinets3.tileentity.CabinetTileEntity;
 import net.fusionlord.fusionutil.client.dynamics.DynGUIContainer;
+import net.fusionlord.fusionutil.client.dynamics.elements.ButtonGuiElement;
 import net.fusionlord.fusionutil.client.dynamics.elements.IGuiElement;
-import net.fusionlord.fusionutil.client.dynamics.elements.MinecraftGuiElement;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.StatCollector;
@@ -43,10 +43,10 @@ public class CabinetGui extends DynGUIContainer<CabinetContainer>
 	{
 		int posy = (height - ySize) / 2 - 13;
 
-		button0 = new MinecraftGuiElement(0, width / 2 + 24, posy + 28, 55, 14, "Unclaim", elements, buttonList);
-		button1 = new MinecraftGuiElement(1, width / 2 + 24, posy + 42, 55, 14, cabinet.isHidden() ? "Show" : "Hide", elements, buttonList);
-		button2 = new MinecraftGuiElement(2, width / 2 + 24, posy + 56, 55, 14, cabinet.isLocked() ? "Public" : "Private", elements, buttonList);
-		button3 = new MinecraftGuiElement(3, width / 2 + 24, posy + 70, 55, 14, "Skin", elements, buttonList);
+		button0 = new ButtonGuiElement(0, width / 2 + 24, posy + 28, 55, 14, "Unclaim", elements, buttonList);
+		button1 = new ButtonGuiElement(1, width / 2 + 24, posy + 42, 55, 14, cabinet.isHidden() ? "Show" : "Hide", elements, buttonList);
+		button2 = new ButtonGuiElement(2, width / 2 + 24, posy + 56, 55, 14, cabinet.isLocked() ? "Public" : "Private", elements, buttonList);
+		button3 = new ButtonGuiElement(3, width / 2 + 24, posy + 70, 55, 14, "Skin", elements, buttonList);
 
 		boolean enabled = cabinet.getOwner() != null && cabinet.getOwner().equals(player.getPersistentID());
 		button0.enabled = enabled;

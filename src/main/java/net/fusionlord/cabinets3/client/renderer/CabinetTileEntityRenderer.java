@@ -131,6 +131,11 @@ public class CabinetTileEntityRenderer extends TileEntitySpecialRenderer
 				}
 				else if (!(part == CabinetParts.Left_Door || part == CabinetParts.Right_Door || part == CabinetParts.Half_Door))
 				{
+					if (Reference.isTextureClimbable(texture.getIconName()) || Reference.isTextureDoubleRendered(texture.getIconName()))
+					{
+						GlStateManager.translate(0.001f, 0f, 0f);
+						RenderingUtil.renderPartWithIcon(RenderingReference.model, part.name().concat(String.valueOf(i)), Minecraft.getMinecraft().getTextureMapBlocks().getTextureExtry(cabinet.getDefaultTexture()), worldRenderer, -1);
+					}
 					RenderingUtil.renderPartWithIcon(RenderingReference.model, part.name().concat(String.valueOf(i)), texture, worldRenderer, color);
 				}
 

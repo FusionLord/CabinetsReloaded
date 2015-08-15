@@ -204,14 +204,7 @@ public class CabinetBlock extends BlockContainer
 			return false;
 		}
 		String texture = cabinet.getTexture(getFixedID(face, cabinet.getFacing()));
-		for (String s : Reference.CLIMBABLE)
-		{
-			if (s.equals(texture))
-			{
-				return true;
-			}
-		}
-		return false;
+		return Reference.isTextureClimbable(texture);
 	}
 
 	@Override

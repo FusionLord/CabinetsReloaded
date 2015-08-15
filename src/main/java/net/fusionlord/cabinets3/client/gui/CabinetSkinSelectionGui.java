@@ -5,15 +5,19 @@ import net.fusionlord.cabinets3.client.renderer.CabinetParts;
 import net.fusionlord.cabinets3.packets.CabinetTextureSyncPacket;
 import net.fusionlord.cabinets3.tileentity.CabinetTileEntity;
 import net.fusionlord.fusionutil.client.dynamics.DynGUIScreen;
+import net.fusionlord.fusionutil.client.dynamics.elements.ButtonGuiElement;
 import net.fusionlord.fusionutil.client.dynamics.elements.IGuiElement;
-import net.fusionlord.fusionutil.client.dynamics.elements.MinecraftGuiElement;
+import net.fusionlord.fusionutil.client.dynamics.elements.TextFieldGuiElement;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.StatCollector;
+import net.minecraftforge.fml.common.Loader;
+import net.minecraftforge.fml.common.ModContainer;
 import org.lwjgl.input.Mouse;
 
 import java.awt.*;
@@ -34,7 +38,7 @@ public class CabinetSkinSelectionGui extends DynGUIScreen
 	private CabinetTileEntity cabinet;
 	private String selectedTexture;
 	private Map<GuiButton, List<IGuiElement>> tabContents = new HashMap<>();
-	private int page = 0;
+	private int page = 0, sortType = 0;
 	private int tileX = 6, tileY = 6, scale = 20;
 	private GuiButton door;
 	private GuiButton all;
@@ -44,6 +48,8 @@ public class CabinetSkinSelectionGui extends DynGUIScreen
 	private GuiButton done;
 	private GuiButton next;
 	private GuiButton prev;
+	private GuiButton sort;
+	private GuiTextField search;
 	private GuiButton currentTab;
 
 	public CabinetSkinSelectionGui(CabinetTileEntity cabinetTE, EntityPlayer player)
@@ -67,34 +73,39 @@ public class CabinetSkinSelectionGui extends DynGUIScreen
 			{
 				if (part.name().toLowerCase().contains("inner"))
 				{
-					tab3contents.add(new MinecraftGuiElement(part.ordinal(), x, y + ((part.ordinal() % 6) * buttonScaleY), buttonScaleX, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.".concat(part.name().toLowerCase())), true, false, elements, buttonList));
+					tab3contents.add(new ButtonGuiElement(part.ordinal(), x, y + ((part.ordinal() % 6) * buttonScaleY), buttonScaleX, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.".concat(part.name().toLowerCase())), true, false, elements, buttonList));
 				}
 				else if (part.name().toLowerCase().contains("shelf"))
 				{
-					tab2contents.add(new MinecraftGuiElement(part.ordinal(), x, y + ((part.ordinal() % 6) * buttonScaleY), buttonScaleX, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.".concat(part.name().toLowerCase())), true, false, elements, buttonList));
+					tab2contents.add(new ButtonGuiElement(part.ordinal(), x, y + ((part.ordinal() % 6) * buttonScaleY), buttonScaleX, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.".concat(part.name().toLowerCase())), true, false, elements, buttonList));
 				}
 				else
 				{
-					tab1contents.add(new MinecraftGuiElement(part.ordinal(), x, y + ((part.ordinal() % 6) * buttonScaleY), buttonScaleX, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.".concat(part.name().toLowerCase())), true, true, elements, buttonList));
+					tab1contents.add(new ButtonGuiElement(part.ordinal(), x, y + ((part.ordinal() % 6) * buttonScaleY), buttonScaleX, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.".concat(part.name().toLowerCase())), true, true, elements, buttonList));
 				}
 			}
 		}
 
 		y += 6 * buttonScaleY;
 
-		door = new MinecraftGuiElement(buttonList.size(), x, y + buttonScaleY, buttonScaleX, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.door"), elements, buttonList);
+		door = new ButtonGuiElement(buttonList.size(), x, y + buttonScaleY, buttonScaleX, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.door"), elements, buttonList);
 
-		all = new MinecraftGuiElement(buttonList.size(), x, y, buttonScaleX, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.all"), elements, buttonList);
+		all = new ButtonGuiElement(buttonList.size(), x, y, buttonScaleX, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.all"), elements, buttonList);
 
-		done = new MinecraftGuiElement(buttonList.size(), x, y + buttonScaleY * 2 + 5, buttonScaleX, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.finished"), elements, buttonList);
+		done = new ButtonGuiElement(buttonList.size(), x, y + buttonScaleY * 2 + 5, buttonScaleX, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.finished"), elements, buttonList);
 
-		next = new MinecraftGuiElement(buttonList.size(), x + buttonScaleX * 3 - 20, y + buttonScaleY * 2 + 5, 30, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.next_page"), elements, buttonList);
-		prev = new MinecraftGuiElement(buttonList.size(), x + buttonScaleX + 30, y + buttonScaleY * 2 + 5, 30, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.prev_page"), elements, buttonList);
+		next = new ButtonGuiElement(buttonList.size(), x + buttonScaleX * 3 - 20, y + buttonScaleY * 2 + 5, 30, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.next_page"), elements, buttonList);
+		prev = new ButtonGuiElement(buttonList.size(), next.xPosition - 90, y + buttonScaleY * 2 + 5, 30, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.prev_page"), elements, buttonList);
+
+		sort = new ButtonGuiElement(buttonList.size(), done.xPosition + done.width + 5, done.yPosition, done.height, done.height, "Aa", elements, buttonList);
+		search = new TextFieldGuiElement(buttonList.size(), fontRendererObj, sort.xPosition + sort.width + 5, sort.yPosition, (prev.xPosition - 5) - (sort.xPosition + sort.width + 5), done.height, elements);
+		search.setCanLoseFocus(false);
+		search.setFocused(true);
 
 		//Tabs
-		tab1 = new MinecraftGuiElement(buttonList.size(), x, 5, buttonScaleX, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.tab_outside"), false, true, elements, buttonList);
-		tab2 = new MinecraftGuiElement(buttonList.size(), x + buttonScaleX + 5, 5, buttonScaleX, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.tab_shelves"), elements, buttonList);
-		tab3 = new MinecraftGuiElement(buttonList.size(), x + buttonScaleX * 2 + 10, 5, buttonScaleX, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.tab_inside"), elements, buttonList);
+		tab1 = new ButtonGuiElement(buttonList.size(), x, 5, buttonScaleX, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.tab_outside"), false, true, elements, buttonList);
+		tab2 = new ButtonGuiElement(buttonList.size(), x + buttonScaleX + 5, 5, buttonScaleX, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.tab_shelves"), elements, buttonList);
+		tab3 = new ButtonGuiElement(buttonList.size(), x + buttonScaleX * 2 + 10, 5, buttonScaleX, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.tab_inside"), elements, buttonList);
 
 		currentTab = tab1;
 		tabContents.put(tab1, tab1contents);
@@ -121,7 +132,8 @@ public class CabinetSkinSelectionGui extends DynGUIScreen
 		}
 		else if (button == next)
 		{
-			if (page + 1 <= Reference.SKINS.size() / (tileX * tileY))
+
+			if (page + 1 <= Reference.getSkinsForSearch(search.getText()).size() / (tileX * tileY))
 			{
 				page++;
 			}
@@ -187,6 +199,20 @@ public class CabinetSkinSelectionGui extends DynGUIScreen
 			cabinet.setTexture(CabinetParts.values().length - 3 + cabinet.getBlockMetadata(), selectedTexture);
 			Reference.packetHandler.sendToServer(new CabinetTextureSyncPacket(cabinet));
 		}
+		else if (button == sort)
+		{
+			if (sortType == 0)
+			{
+				sort.displayString = "M";
+				sortType = 1;
+			}
+			else
+			{
+				sort.displayString = "Aa";
+				sortType = 0;
+			}
+			Reference.sortTextures(sortType);
+		}
 		else
 		{
 			List<IGuiElement> buttons = tabContents.get(currentTab);
@@ -195,12 +221,33 @@ public class CabinetSkinSelectionGui extends DynGUIScreen
 				Reference.packetHandler.sendToServer(new CabinetTextureSyncPacket(cabinet));
 			});
 		}
+
+	}
+
+	@Override
+	protected void keyTyped(char typedChar, int keyCode) throws IOException
+	{
+		super.keyTyped(typedChar, keyCode);
+
+		if (this.search.isFocused())
+		{
+			this.search.textboxKeyTyped(typedChar, keyCode);
+		}
+	}
+
+	@Override
+	protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException
+	{
+		super.mouseClicked(mouseX, mouseY, mouseButton);
+		search.mouseClicked(mouseX, mouseY, mouseButton);
 	}
 
 	@Override
 	public void updateScreen()
 	{
 		super.updateScreen();
+
+		search.updateCursorCounter();
 
 		tileX = (guiWidth - 40 - buttonScaleX) / scale;
 		tileY = (guiHeight - 20 - buttonScaleY * 2) / scale;
@@ -258,7 +305,7 @@ public class CabinetSkinSelectionGui extends DynGUIScreen
 		int y = getYOffset();
 		Color c;
 
-		drawCenteredStringNoShadow(fontRendererObj, String.format("%s of %s", page + 1, Reference.SKINS.size() / (tileX * tileY) + 1), x + ((tileX * scale) / 2), y + guiHeight - 50, 0x000000);
+		drawCenteredStringNoShadow(fontRendererObj, String.format("%s of %s", page + 1, Reference.SKINS.size() / (tileX * tileY) + 1), next.xPosition - 30, y + guiHeight - 50, 0x000000);
 		GlStateManager.resetColor();
 
 		mc.getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
@@ -315,7 +362,8 @@ public class CabinetSkinSelectionGui extends DynGUIScreen
 		//Draw texture list.
 		int x2, y2, idx = 0;
 
-		for (int i = page * (tileX * tileY); i < Reference.SKINS.size(); i++)
+		List<TextureAtlasSprite> textures = Reference.getSkinsForSearch(search.getText());
+		for (int i = page * (tileX * tileY); i < textures.size(); i++)
 		{
 			if (idx / tileX == tileY)
 			{
@@ -323,7 +371,7 @@ public class CabinetSkinSelectionGui extends DynGUIScreen
 			}
 			x2 = x + ((idx % tileX) * scale);
 			y2 = y + ((idx / tileX) * scale);
-			texture = Reference.SKINS.get(i);
+			texture = textures.get(i);
 			for (String s : Reference.COLORABLE)
 			{
 				if (texture.getIconName().contains(s))
@@ -347,7 +395,7 @@ public class CabinetSkinSelectionGui extends DynGUIScreen
 
 		//Draw texture tooltip.
 		idx = 0;
-		for (int i = page * (tileX * tileY); i < Reference.SKINS.size(); i++)
+		for (int i = page * (tileX * tileY); i < textures.size(); i++)
 		{
 			if (idx / tileX == tileY)
 			{
@@ -357,9 +405,12 @@ public class CabinetSkinSelectionGui extends DynGUIScreen
 			y2 = y + ((idx / tileX) * scale);
 			if (mouseX > x2 && mouseX < x2 + scale && mouseY > y2 && mouseY < y2 + scale)
 			{
-				texture = Reference.SKINS.get(i);
+				texture = textures.get(i);
 				List<String> lines = new ArrayList<>();
 				String s = texture.getIconName();
+				String modid = s.substring(0, s.indexOf(":"));
+				ModContainer mod = modid.equals("minecraft") ? Loader.instance().getMinecraftModContainer() : Loader.instance().getIndexedModList().get(modid);
+				lines.add(mod == null ? modid : mod.getName());
 				lines.add(capitalize(s.substring(s.lastIndexOf("/") + 1).replace("_", " ")));
 				drawHoveringText(lines, mouseX, mouseY);
 			}
@@ -380,7 +431,7 @@ public class CabinetSkinSelectionGui extends DynGUIScreen
 		drawRect(x, y, x + (tileX * scale), y + tileY * scale, Color.BLACK.getRGB());
 		int x2, y2, idx = 0;
 		TextureAtlasSprite current;
-		for (int i = page * (tileX * tileY); i < Reference.SKINS.size(); i++)
+		for (int i = page * (tileX * tileY); i < Reference.getSkinsForSearch(search.getText()).size(); i++)
 		{
 			if (idx / tileX == tileY)
 			{
