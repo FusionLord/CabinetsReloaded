@@ -5,7 +5,6 @@ import net.fusionlord.cabinets3.tileentity.CabinetTileEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.BlockPos;
-import net.minecraft.world.World;
 import net.minecraftforge.fml.common.network.ByteBufUtils;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
@@ -61,11 +60,7 @@ public class CabinetSyncPacket implements IMessage
 		@Override
 		public IMessage onMessage(CabinetSyncPacket message, MessageContext ctx)
 		{
-			World world = Minecraft.getMinecraft().theWorld;
-			CabinetTileEntity cabinet = (CabinetTileEntity) world.getTileEntity(message.pos);
-			System.out.println("Cabinet = " + cabinet);
-			System.out.println("part = " + message.part);
-			System.out.println("TAG = " + message.tagCompound);
+			CabinetTileEntity cabinet = (CabinetTileEntity) Minecraft.getMinecraft().theWorld.getTileEntity(message.pos);
 			if (cabinet != null)
 			{
 				switch (message.part)

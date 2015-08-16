@@ -48,7 +48,7 @@ public class CabinetSkinSelectionGui extends DynGUIScreen
 	}
 
 	@Override
-	protected void addInitialElements(List<IGuiElement> elements)
+	public void addInitialElements(List<IGuiElement> elements)
 	{
 		int x = 5;
 		int y = tabOffset + 5;
@@ -146,8 +146,8 @@ public class CabinetSkinSelectionGui extends DynGUIScreen
 			page = textures.size() / (tileX * tileY);
 		}
 
-		int x = sort.getX() + sort.getWidth() + 5;
-		int y = tab1.getY() + tab1.getHeight() + 5;
+		int x = sort.getElementX() + sort.getElementWidth() + 5;
+		int y = tab1.getElementY() + tab1.getElementHeight() + 5;
 		if (mouseX > x && mouseX < x + tileX * scale && mouseY > y && mouseY < y + tileY * scale)
 		{
 			selectedTexture = getTextureAt(mouseX, mouseY);
@@ -164,8 +164,8 @@ public class CabinetSkinSelectionGui extends DynGUIScreen
 			{
 				break;
 			}
-			x = sort.getX() + sort.getWidth() + 5 + (idx % tileX) * scale;
-			y = tab1.getY() + tab1.getHeight() + 5 + (idx / tileX) * scale;
+			x = sort.getElementX() + sort.getElementWidth() + 5 + (idx % tileX) * scale;
+			y = tab1.getElementY() + tab1.getElementHeight() + 5 + (idx / tileX) * scale;
 			if (mouseX > x && mouseX < x + scale && mouseY > y && mouseY < y + scale)
 			{
 				return textures.get(i);
@@ -188,8 +188,8 @@ public class CabinetSkinSelectionGui extends DynGUIScreen
 		super.drawScreen(mouseX, mouseY, partialTicks);
 
 		//mouse input
-		int x = sort.getX() + sort.getWidth() + 5;
-		int y = tab1.getY() + tab1.getHeight() + 5;
+		int x = sort.getElementX() + sort.getElementWidth() + 5;
+		int y = tab1.getElementY() + tab1.getElementHeight() + 5;
 		if (mouseX > x && mouseX < x + tileX * scale && mouseY > y && mouseY < y + tileY * scale)
 		{
 			int mouseDWheel = Mouse.getDWheel();
@@ -232,7 +232,7 @@ public class CabinetSkinSelectionGui extends DynGUIScreen
 					break;
 				}
 			}
-			drawTexturedModalRect(element.getX() + element.getWidth() + 6, element.getY() + 1, texture, 18, 18);
+			drawTexturedModalRect(element.getElementX() + element.getElementWidth() + 6, element.getElementY() + 1, texture, 18, 18);
 			GlStateManager.color(1F, 1F, 1F);
 		}
 
@@ -255,7 +255,7 @@ public class CabinetSkinSelectionGui extends DynGUIScreen
 				break;
 			}
 		}
-		drawTexturedModalRect(door.getX() + door.getWidth() + 6, door.getY() + 1, texture, scale - 2, scale - 2);
+		drawTexturedModalRect(door.getElementX() + door.getElementWidth() + 6, door.getElementY() + 1, texture, scale - 2, scale - 2);
 		GlStateManager.color(1F, 1F, 1F);
 
 		//Draw texture list.
@@ -283,7 +283,7 @@ public class CabinetSkinSelectionGui extends DynGUIScreen
 					break;
 				}
 			}
-			drawTexturedModalRect(sort.getX() + sort.getWidth() + 6 + (idx % tileX) * scale, tab1.getY() + tab1.getHeight() + 6 + (idx / tileX) * scale, texture, scale - 2, scale - 2);
+			drawTexturedModalRect(sort.getElementX() + sort.getElementWidth() + 6 + (idx % tileX) * scale, tab1.getElementY() + tab1.getElementHeight() + 6 + (idx / tileX) * scale, texture, scale - 2, scale - 2);
 			GlStateManager.color(1F, 1F, 1F);
 			idx++;
 		}
@@ -305,9 +305,9 @@ public class CabinetSkinSelectionGui extends DynGUIScreen
 		super.drawGuiBackgroundLayer(mouseX, mouseY);
 
 		//door
-		drawRect(sort.getX(), door.getY(), sort.getX() + scale, door.getY() + scale, Color.BLACK.getRGB());
+		drawRect(sort.getElementX(), door.getElementY(), sort.getElementX() + scale, door.getElementY() + scale, Color.BLACK.getRGB());
 		//current
-		drawRect(sort.getX(), tab1.getY() + tab1.getHeight() + 5, sort.getX() + scale, tab1.getY() + tab1.getHeight() + 5 + (tabContents.get(currentTab).size() * scale), Color.BLACK.getRGB());
+		drawRect(sort.getElementX(), tab1.getElementY() + tab1.getElementHeight() + 5, sort.getElementX() + scale, tab1.getElementY() + tab1.getElementHeight() + 5 + (tabContents.get(currentTab).size() * scale), Color.BLACK.getRGB());
 
 		int x, y, idx = 0;
 		TextureAtlasSprite current;
@@ -317,8 +317,8 @@ public class CabinetSkinSelectionGui extends DynGUIScreen
 			{
 				break;
 			}
-			x = sort.getX() + sort.getWidth() + 5 + (idx % tileX) * scale;
-			y = tab1.getY() + tab1.getHeight() + 5 + (idx / tileX) * scale;
+			x = sort.getElementX() + sort.getElementWidth() + 5 + (idx % tileX) * scale;
+			y = tab1.getElementY() + tab1.getElementHeight() + 5 + (idx / tileX) * scale;
 			current = textures.get(i);
 			if (selectedTexture != null && current.equals(selectedTexture))
 			{

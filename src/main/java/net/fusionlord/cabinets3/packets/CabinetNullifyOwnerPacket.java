@@ -2,7 +2,6 @@ package net.fusionlord.cabinets3.packets;
 
 import io.netty.buffer.ByteBuf;
 import net.fusionlord.cabinets3.tileentity.CabinetTileEntity;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.BlockPos;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
@@ -40,10 +39,12 @@ public class CabinetNullifyOwnerPacket implements IMessage
 		@Override
 		public IMessage onMessage(CabinetNullifyOwnerPacket message, MessageContext ctx)
 		{
-			EntityPlayer player = ctx.getServerHandler().playerEntity;
-			CabinetTileEntity cabinet = (CabinetTileEntity) player.worldObj.getTileEntity(message.pos);
-			cabinet.clearOwner();
-			cabinet.markForUpdate();
+			CabinetTileEntity cabinet = (CabinetTileEntity) ctx.getServerHandler().playerEntity.worldObj.getTileEntity(message.pos);
+			if (cabinet != null)
+			{
+				cabinet.clearOwner();
+				cabinet.markForUpdate();
+			}
 			return null;
 		}
 	}

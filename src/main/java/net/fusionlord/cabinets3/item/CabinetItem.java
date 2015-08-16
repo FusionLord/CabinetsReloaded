@@ -22,6 +22,7 @@ public class CabinetItem extends ItemBlock
 		setMaxDamage(0);
 		setHasSubtypes(true);
 		setCreativeTab(CreativeTabs.tabDecorations);
+
 	}
 
 	@Override

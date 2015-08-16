@@ -27,13 +27,13 @@ configFile.withReader {
     def prop = new Properties()
     prop.load(it)
     project.ext.config = new ConfigSlurper().parse prop
-    version = project.config.mod_version + "." + project.config.mod_buildNumber
-    group = project.config.mod_package
-    archivesBaseName = project.config.mod_archiveBaseName
+    version = config.mod_version + "." + config.mod_buildNumber
+    group = config.mod_package
+    archivesBaseName = config.mod_archiveBaseName
 }
 
 minecraft {
-    version = project.config.minecraft_version
+    version = "1.8-11.14.3.1491"
     runDir = "eclipse"
 
     // the mappings can be changed at any time, and must be in the following format.
@@ -46,6 +46,7 @@ minecraft {
 
 processResources
         {
+            dependsOn "incrementBuildNumber"
             // this will ensure that this task is redone when the versions change.
             inputs.property "version", project.version
             inputs.property "mcversion", project.minecraft.version
@@ -81,7 +82,7 @@ task("incrementBuildNumber")
             // increment build number
             doFirst {
                 // increment
-                config.build_number = (config.build_number.toString().toInteger()) + 1
+                config.mod_buildNumber = (config.mod_buildNumber.toString().toInteger()) + 1
 
                 // write back to the file
                 configFile.withWriter {
@@ -91,4 +92,4 @@ task("incrementBuildNumber")
         }
 
 // make sure all of these happen when we run build
-build.dependsOn inccrementBuildNumber, sourceJar, deobfJar
+build.dependsOn sourceJar, deobfJar

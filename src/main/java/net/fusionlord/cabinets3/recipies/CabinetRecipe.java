@@ -69,7 +69,7 @@ public class CabinetRecipe implements IRecipe
 		}
 		if (old != null)
 		{
-			ItemStack notOld = new ItemStack(Reference.cabinet, 1, Math.abs(old.getMetadata() - 3) - 1);
+			ItemStack notOld = new ItemStack(Reference.cabinet, 1, old.getMetadata() == 2 ? 0 : old.getMetadata() + 1);
 			notOld.setTagCompound(old.getTagCompound());
 			return notOld;
 		}

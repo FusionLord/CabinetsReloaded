@@ -2,13 +2,10 @@ package net.fusionlord.cabinets3.packets;
 
 import io.netty.buffer.ByteBuf;
 import net.fusionlord.cabinets3.tileentity.CabinetTileEntity;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BlockPos;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
-import net.minecraftforge.fml.relauncher.Side;
 
 public class CabinetGuiPacket implements IMessage
 {
@@ -47,20 +44,13 @@ public class CabinetGuiPacket implements IMessage
 		@Override
 		public IMessage onMessage(CabinetGuiPacket message, MessageContext ctx)
 		{
-			if (ctx.side == Side.SERVER)
+			CabinetTileEntity cabinet = (CabinetTileEntity) ctx.getServerHandler().playerEntity.worldObj.getTileEntity(message.pos);
+			if (cabinet != null)
 			{
-				EntityPlayer player = ctx.getServerHandler().playerEntity;
-				TileEntity te = player.worldObj.getTileEntity(message.pos);
-				if (te instanceof CabinetTileEntity)
-				{
-					CabinetTileEntity cabinet = (CabinetTileEntity) te;
-
-					cabinet.setLocked(message.isLocked);
-					cabinet.setHidden(message.hideItems);
-					cabinet.markForUpdate();
-				}
+				cabinet.setLocked(message.isLocked);
+				cabinet.setHidden(message.hideItems);
+				cabinet.markForUpdate();
 			}
-
 			return null;
 		}
 	}
