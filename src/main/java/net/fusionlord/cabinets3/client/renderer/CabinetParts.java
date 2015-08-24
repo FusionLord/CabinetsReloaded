@@ -22,10 +22,7 @@ public enum CabinetParts
 	Inner_Top,
 	Inner_Left,
 	Inner_Back(3),
-	Inner_Right,
-	Left_Door,
-	Right_Door,
-	Half_Door,;
+	Inner_Right;
 	
 	int count;
 	

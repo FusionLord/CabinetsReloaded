@@ -14,14 +14,14 @@ import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
  */
 public class CabinetTextureSyncPacket implements IMessage
 {
-	private BlockPos location;
+	private BlockPos pos;
 	private NBTTagCompound textures;
 
 	public CabinetTextureSyncPacket() {}
 
 	public CabinetTextureSyncPacket(CabinetTileEntity cabinet)
 	{
-		location = cabinet.getPos();
+		pos = cabinet.getPos();
 		textures = new NBTTagCompound();
 		cabinet.writeTextureNBT(textures);
 	}
@@ -29,14 +29,15 @@ public class CabinetTextureSyncPacket implements IMessage
 	@Override
 	public void toBytes(ByteBuf buffer)
 	{
-		buffer.writeLong(location.toLong());
+		buffer.writeLong(pos.toLong());
 		ByteBufUtils.writeTag(buffer, textures);
 	}
 
 	@Override
 	public void fromBytes(ByteBuf buffer)
 	{
-		location = BlockPos.fromLong(buffer.readLong());
+		Long posl = buffer.readLong();
+		pos = BlockPos.fromLong(posl);
 		textures = ByteBufUtils.readTag(buffer);
 	}
 
@@ -46,7 +47,7 @@ public class CabinetTextureSyncPacket implements IMessage
 		public IMessage onMessage(CabinetTextureSyncPacket message, MessageContext ctx)
 		{
 
-			CabinetTileEntity cabinet = (CabinetTileEntity) ctx.getServerHandler().playerEntity.worldObj.getTileEntity(message.location);
+			CabinetTileEntity cabinet = (CabinetTileEntity) ctx.getServerHandler().playerEntity.worldObj.getTileEntity(message.pos);
 			if (cabinet != null)
 			{
 				cabinet.readTextureNBT(message.textures);

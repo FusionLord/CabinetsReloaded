@@ -2,15 +2,11 @@
 #  Blocks
 #
 tile.cabinet.name=Cabinet
-tile.sink.name=Sink
 
 #
 #  Items
 #
-item.left.cabinet.name=Left Cabinet
-item.right.cabinet.name=Right Cabinet
-item.double.cabinet.name=Double Cabinet
-item.unknown.cabinet.name=Unknown Cabinet
+item.cabinet.name=Cabinet
 
 #
 #  Contianers

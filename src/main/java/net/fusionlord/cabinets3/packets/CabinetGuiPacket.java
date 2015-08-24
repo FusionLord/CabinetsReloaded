@@ -23,21 +23,22 @@ public class CabinetGuiPacket implements IMessage
 	}
 
 	@Override
+	public void toBytes(ByteBuf buffer)
+	{
+		buffer.writeLong(pos.toLong());
+		buffer.writeBoolean(isLocked);
+		buffer.writeBoolean(hideItems);
+	}
+
+	@Override
 	public void fromBytes(ByteBuf buffer)
 	{
-		pos = BlockPos.fromLong(buffer.readLong());
+		Long posl = buffer.readLong();
+		pos = BlockPos.fromLong(posl);
 		isLocked = buffer.readBoolean();
 		hideItems = buffer.readBoolean();
 	}
 
-	@Override
-	public void toBytes(ByteBuf buffer)
-	{
-		buffer.writeLong(pos.toLong());
-
-		buffer.writeBoolean(isLocked);
-		buffer.writeBoolean(hideItems);
-	}
 
 	public static class Handler implements IMessageHandler<CabinetGuiPacket, IMessage>
 	{

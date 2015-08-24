@@ -11,6 +11,7 @@ import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+import net.minecraft.item.ItemAnvilBlock;
 import net.minecraft.item.ItemBanner;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
@@ -31,149 +32,201 @@ public class CabinetTileEntityRenderer extends TileEntitySpecialRenderer
 	public void renderTileEntityAt(TileEntity tileEntity, double x, double y, double z, float f, int i)
 	{
 		GlStateManager.pushMatrix();
-		GlStateManager.translate((float) x + .5f, (float) y, (float) z + .5f);
-		CabinetTileEntity te = (CabinetTileEntity) tileEntity;
-		renderCabinet(te);
+		CabinetTileEntity cabinet = (CabinetTileEntity) tileEntity;
+		GlStateManager.translate((float) x + .5, (float) y + .5, (float) z + .5);
+		renderCabinet(cabinet);
 		GlStateManager.popMatrix();
 	}
 
 	public void renderCabinet(CabinetTileEntity cabinet)
 	{
+		bindTexture(TextureMap.locationBlocksTexture);
+
 		WorldRenderer worldRenderer = Tessellator.getInstance().getWorldRenderer();
 
 		GlStateManager.enableBlend();
 		GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-		GlStateManager.disableLighting();
 
-		int facing = cabinet.getFacing();
-		int face = 0;
-		switch (facing)
+		switch (cabinet.getFacing())
 		{
-			case 0:
-				face = 180;
+			case DOWN:
 				break;
-			case 1:
-				face = 90;
+			case UP:
 				break;
-			case 2:
-				face = 0;
+			case NORTH:
 				break;
-			case 3:
-				face = 270;
+			case SOUTH:
+				GlStateManager.rotate(180, 0, 1, 0);
+				break;
+			case WEST:
+				GlStateManager.rotate(90, 0, 1, 0);
+				break;
+			case EAST:
+				GlStateManager.rotate(-90, 0, 1, 0);
 				break;
 		}
 
-		bindTexture(TextureMap.locationBlocksTexture);
+		switch (cabinet.getVerticalFacing())
+		{
+			case DOWN:
+				GlStateManager.rotate(90, 1, 0, 0);
+				break;
+			case UP:
+				GlStateManager.rotate(-90, 1, 0, 0);
+				break;
+		}
+
+		TextureAtlasSprite texture = Minecraft.getMinecraft().getTextureMapBlocks().getTextureExtry(cabinet.getDoorTexture());
+
+		int color = -1;
+		for (String s : Reference.COLORABLE)
+		{
+			if (texture.getIconName().contains(s))
+			{
+				if (texture.getIconName().contains("grass"))
+				{
+					color = cabinet.getWorld().getBiomeGenForCoords(cabinet.getPos()).getGrassColorAtPos(cabinet.getPos());
+				}
+				else
+				{
+					color = cabinet.getWorld().getBiomeGenForCoords(cabinet.getPos()).getFoliageColorAtPos(cabinet.getPos());
+				}
+			}
+		}
+
+		boolean doubleRender = Reference.isTextureClimbable(texture.getIconName()) || Reference.isTextureDoubleRendered(texture.getIconName()) || texture.getIconName().toLowerCase().contains("items");
+		float a = 90 * cabinet.getDoorAngle();
+		float m = 0.0625F;
+		switch (cabinet.getDoorType())
+		{
+			case LEFT:
+				GlStateManager.translate(m * -7.5f, m * 1f, m * 7.5f);
+				GlStateManager.rotate(a, 0f, -1f, 0f);
+				GlStateManager.rotate(180, 0F, 1F, 0F);
+				if (texture.getIconName().contains("grass_side_overlay") || texture.getIconName().contains("grass_top"))
+				{
+					GlStateManager.disableLighting();
+				}
+				if (doubleRender)
+				{
+					RenderingUtil.renderPartWithIcon(RenderingReference.model, "leftdoor", Minecraft.getMinecraft().getTextureMapBlocks().getTextureExtry(cabinet.getDoorTexture()), worldRenderer, -1);
+				}
+				RenderingUtil.renderPartWithIcon(RenderingReference.model, "leftdoor", texture, worldRenderer, color);
+				if (texture.getIconName().contains("grass_side_overlay") || texture.getIconName().contains("grass_top"))
+				{
+					GlStateManager.enableLighting();
+				}
+				GlStateManager.rotate(180, 0F, -1F, 0F);
+				GlStateManager.rotate(a, 0f, 1f, 0f);
+				GlStateManager.translate(m * 7.5f, m * -1f, m * -7.5f);
+				break;
+			case RIGHT:
+				GlStateManager.translate(m * 7.5f, m * 1f, m * 7.5f);
+				GlStateManager.rotate(a, 0f, 1f, 0f);
+				GlStateManager.rotate(180, 0F, 1F, 0F);
+				if (texture.getIconName().contains("grass_side_overlay") || texture.getIconName().contains("grass_top"))
+				{
+					GlStateManager.disableLighting();
+				}
+				if (doubleRender)
+				{
+					RenderingUtil.renderPartWithIcon(RenderingReference.model, "rightdoor", Minecraft.getMinecraft().getTextureMapBlocks().getTextureExtry(cabinet.getDoorTexture()), worldRenderer, -1);
+				}
+				RenderingUtil.renderPartWithIcon(RenderingReference.model, "rightdoor", texture, worldRenderer, color);
+				if (texture.getIconName().contains("grass_side_overlay") || texture.getIconName().contains("grass_top"))
+				{
+					GlStateManager.enableLighting();
+				}
+				GlStateManager.rotate(180, 0F, -1F, 0F);
+				GlStateManager.rotate(a, 0f, -1F, 0f);
+				GlStateManager.translate(m * -7.5f, m * -1f, m * -7.5f);
+				break;
+			case DOUBLE:
+				GlStateManager.translate(m * 7.5f, m * 1f, m * 7.5f);
+				GlStateManager.rotate(a, 0f, 1f, 0f);
+				if (texture.getIconName().contains("grass_side_overlay") || texture.getIconName().contains("grass_top"))
+				{
+					GlStateManager.disableLighting();
+				}
+				if (doubleRender)
+				{
+					RenderingUtil.renderPartWithIcon(RenderingReference.model, "leftdoubledoor", Minecraft.getMinecraft().getTextureMapBlocks().getTextureExtry(cabinet.getDoorTexture()), worldRenderer, -1);
+				}
+				RenderingUtil.renderPartWithIcon(RenderingReference.model, "leftdoubledoor", texture, worldRenderer, color);
+				if (texture.getIconName().contains("grass_side_overlay") || texture.getIconName().contains("grass_top"))
+				{
+					GlStateManager.enableLighting();
+				}
+				GlStateManager.rotate(a, 0f, -1f, 0f);
+				GlStateManager.translate(m * -7.5f, m * -1f, m * -7.5f);
+				GlStateManager.translate(m * -7.5f, m * 1f, m * 7.5f);
+				GlStateManager.rotate(a, 0f, -1f, 0f);
+				if (texture.getIconName().contains("grass_side_overlay") || texture.getIconName().contains("grass_top"))
+				{
+					GlStateManager.disableLighting();
+				}
+				if (doubleRender)
+				{
+					RenderingUtil.renderPartWithIcon(RenderingReference.model, "rightdoubledoor", Minecraft.getMinecraft().getTextureMapBlocks().getTextureExtry(cabinet.getDoorTexture()), worldRenderer, -1);
+				}
+				RenderingUtil.renderPartWithIcon(RenderingReference.model, "rightdoubledoor", texture, worldRenderer, color);
+				if (texture.getIconName().contains("grass_side_overlay") || texture.getIconName().contains("grass_top"))
+				{
+					GlStateManager.enableLighting();
+				}
+				GlStateManager.rotate(a, 0f, 1f, 0f);
+				GlStateManager.translate(m * 7.5f, m * -1f, m * -7.5f);
+				break;
+		}
+
 		for (CabinetParts part : CabinetParts.values())
 		{
-			TextureAtlasSprite texture = Minecraft.getMinecraft().getTextureMapBlocks().getTextureExtry(cabinet.getTexture(part.ordinal()));
-			int color = -1;
-			for (String s : Reference.COLORABLE)
+			texture = Minecraft.getMinecraft().getTextureMapBlocks().getTextureExtry(cabinet.getTexture(part.ordinal()));
+			doubleRender = Reference.isTextureClimbable(texture.getIconName()) || Reference.isTextureDoubleRendered(texture.getIconName()) || texture.getIconName().toLowerCase().contains("items");
+			color = -1;
+			if (Reference.isTextureColorable(texture.getIconName()))
 			{
-
-				if (texture.getIconName().contains(s))
+				if (texture.getIconName().contains("grass"))
 				{
-					if (texture.getIconName().contains("grass"))
-					{
-						color = cabinet.getWorld().getBiomeGenForCoords(cabinet.getPos()).getGrassColorAtPos(cabinet.getPos());
-					}
-					else
-					{
-						color = cabinet.getWorld().getBiomeGenForCoords(cabinet.getPos()).getFoliageColorAtPos(cabinet.getPos());
-					}
+					color = cabinet.getWorld().getBiomeGenForCoords(cabinet.getPos()).getGrassColorAtPos(cabinet.getPos());
+				}
+				else
+				{
+					color = cabinet.getWorld().getBiomeGenForCoords(cabinet.getPos()).getFoliageColorAtPos(cabinet.getPos());
 				}
 			}
 			for (int i = 0; i < part.count; i++)
 			{
-				if (part == CabinetParts.Bottom)
+				if (texture.getIconName().contains("grass_side_overlay") || texture.getIconName().contains("grass_top"))
 				{
-					GlStateManager.rotate(180, 0F, 1F, 0F);
+					GlStateManager.disableLighting();
 				}
-				if (!((part == CabinetParts.Bottom || part == CabinetParts.Top)))
+				if (doubleRender)
 				{
-					GlStateManager.rotate(face, 0F, 1F, 0F);
+					RenderingUtil.renderPartWithIcon(RenderingReference.model, part.name().concat(String.valueOf(i)), Minecraft.getMinecraft().getTextureMapBlocks().getTextureExtry(cabinet.getDefaultTexture()), worldRenderer, -1);
 				}
-
-				float a = 90 * cabinet.getDoorAngle();
-				float m = 0.0625F;
-				if (part == CabinetParts.Half_Door && cabinet.getBlockMetadata() == 2)
+				RenderingUtil.renderPartWithIcon(RenderingReference.model, part.name().concat(String.valueOf(i)), texture, worldRenderer, color);
+				if (texture.getIconName().contains("grass_side_overlay") || texture.getIconName().contains("grass_top"))
 				{
-					GlStateManager.translate(m * 7.5f, m * 1f, m * 7.5f);
-					GlStateManager.rotate(a, 0f, 1f, 0f);
-					if (Reference.isTextureClimbable(texture.getIconName()) || Reference.isTextureDoubleRendered(texture.getIconName()) || texture.getIconName().toLowerCase().contains("items"))
-					{
-						RenderingUtil.renderPartWithIcon(RenderingReference.model, part.name().concat(String.valueOf(i)), Minecraft.getMinecraft().getTextureMapBlocks().getTextureExtry(cabinet.getDefaultTexture()), worldRenderer, -1);
-					}
-					RenderingUtil.renderPartWithIcon(RenderingReference.model, part.name().concat(String.valueOf(0)), texture, worldRenderer, color);
-					GlStateManager.rotate(a, 0f, -1f, 0f);
-					GlStateManager.translate(m * -7.5f, m * -1f, m * -7.5f);
-					GlStateManager.translate(m * -7.5f, m * 1f, m * 7.5f);
-					GlStateManager.rotate(a, 0f, -1f, 0f);
-					if (Reference.isTextureClimbable(texture.getIconName()) || Reference.isTextureDoubleRendered(texture.getIconName()) || texture.getIconName().toLowerCase().contains("items"))
-					{
-						RenderingUtil.renderPartWithIcon(RenderingReference.model, part.name().concat(String.valueOf(i)), Minecraft.getMinecraft().getTextureMapBlocks().getTextureExtry(cabinet.getDefaultTexture()), worldRenderer, -1);
-					}
-					RenderingUtil.renderPartWithIcon(RenderingReference.model, part.name().concat(String.valueOf(1)), texture, worldRenderer, color);
-					GlStateManager.rotate(a, 0f, 1f, 0f);
-					GlStateManager.translate(m * 7.5f, m * -1f, m * -7.5f);
-				}
-				else if (part == CabinetParts.Right_Door && cabinet.getBlockMetadata() == 1)
-				{
-					GlStateManager.translate(m * 7.5f, m * 1f, m * 7.5f);
-					GlStateManager.rotate(a, 0f, 1f, 0f);
-					GlStateManager.rotate(180, 0F, 1F, 0F);
-					if (Reference.isTextureClimbable(texture.getIconName()) || Reference.isTextureDoubleRendered(texture.getIconName()) || texture.getIconName().toLowerCase().contains("items"))
-					{
-						RenderingUtil.renderPartWithIcon(RenderingReference.model, part.name().concat(String.valueOf(i)), Minecraft.getMinecraft().getTextureMapBlocks().getTextureExtry(cabinet.getDefaultTexture()), worldRenderer, -1);
-					}
-					RenderingUtil.renderPartWithIcon(RenderingReference.model, part.name().concat(String.valueOf(0)), texture, worldRenderer, color);
-					GlStateManager.rotate(180, 0F, -1F, 0F);
-					GlStateManager.rotate(a, 0f, -1F, 0f);
-					GlStateManager.translate(m * -7.5f, m * -1f, m * -7.5f);
-				}
-				else if (part == CabinetParts.Left_Door && cabinet.getBlockMetadata() == 0)
-				{
-					GlStateManager.translate(m * -7.5f, m * 1f, m * 7.5f);
-					GlStateManager.rotate(a, 0f, -1f, 0f);
-					GlStateManager.rotate(180, 0F, 1F, 0F);
-					if (Reference.isTextureClimbable(texture.getIconName()) || Reference.isTextureDoubleRendered(texture.getIconName()) || texture.getIconName().toLowerCase().contains("items"))
-					{
-						RenderingUtil.renderPartWithIcon(RenderingReference.model, part.name().concat(String.valueOf(i)), Minecraft.getMinecraft().getTextureMapBlocks().getTextureExtry(cabinet.getDefaultTexture()), worldRenderer, -1);
-					}
-					RenderingUtil.renderPartWithIcon(RenderingReference.model, part.name().concat(String.valueOf(0)), texture, worldRenderer, color);
-					GlStateManager.rotate(180, 0F, -1F, 0F);
-					GlStateManager.rotate(a, 0f, 1f, 0f);
-					GlStateManager.translate(m * 7.5f, m * -1f, m * -7.5f);
-				}
-				else if (!(part == CabinetParts.Left_Door || part == CabinetParts.Right_Door || part == CabinetParts.Half_Door))
-				{
-					if (Reference.isTextureClimbable(texture.getIconName()) || Reference.isTextureDoubleRendered(texture.getIconName()) || texture.getIconName().toLowerCase().contains("items"))
-					{
-						RenderingUtil.renderPartWithIcon(RenderingReference.model, part.name().concat(String.valueOf(i)), Minecraft.getMinecraft().getTextureMapBlocks().getTextureExtry(cabinet.getDefaultTexture()), worldRenderer, -1);
-					}
-					RenderingUtil.renderPartWithIcon(RenderingReference.model, part.name().concat(String.valueOf(i)), texture, worldRenderer, color);
-				}
-
-				if (!((part == CabinetParts.Bottom || part == CabinetParts.Top)))
-				{
-					GlStateManager.rotate(face, 0F, -1F, 0F);
-				}
-				if ((part == CabinetParts.Bottom))
-				{
-					GlStateManager.rotate(180, 0F, -1F, 0F);
+					GlStateManager.enableLighting();
 				}
 			}
 		}
-		GlStateManager.rotate(face, 0F, 1F, 0F);
+		renderContents(cabinet);
+		GlStateManager.disableBlend();
+	}
 
+	private void renderContents(CabinetTileEntity cabinet)
+	{
 		if (!cabinet.isHidden() && Reference.showItemsTileEntity)
 		{
 			float scale = .4f;
 			GlStateManager.scale(scale, scale, scale);
 			ItemStack[] contents = cabinet.getContents();
-			GlStateManager.translate(0f, 2.5f, 0f);
-			for (int c = 0; c < contents.length; c++)
+			GlStateManager.translate(0f, 1.23f, -.05f);
+			for (int c = 0; c < contents.length - 2; c++)
 			{
+				ItemStack stack = contents[c];
 				if (contents[c] == null)
 				{
 					continue;
@@ -186,32 +239,33 @@ public class CabinetTileEntityRenderer extends TileEntitySpecialRenderer
 					k = ((c / 3) * .5f) - .56f * scale;
 					GlStateManager.pushMatrix();
 					GlStateManager.translate(i, j, k + (-.5f * e));
-					if (!(contents[c].getItem() instanceof ItemBlock))
+					if (!(stack.getItem() instanceof ItemBlock))
 					{
 						GlStateManager.scale(0.5f, 0.5f, 0.5f);
 					}
 					else
 					{
-						Block block = Block.getBlockFromItem(contents[c].getItem());
+						Block block = Block.getBlockFromItem(stack.getItem());
 						if (block instanceof IPlantable)
 						{
 							GlStateManager.scale(0.5f, 0.5f, 0.5f);
 						}
 					}
-					if (contents[c].getItem() instanceof ItemBanner)
+					if (stack.getItem() instanceof ItemBanner)
 					{
 						GlStateManager.rotate(180, 0, 1, 0);
 					}
-					if (contents[c].stackSize >= e + 1)
+					if (stack.getItem() instanceof ItemAnvilBlock)
 					{
-						Minecraft.getMinecraft().getRenderItem().renderItemModel(contents[c]);
+						GlStateManager.rotate(90, 0, 1, 0);
+					}
+					if (stack.stackSize >= e + 1)
+					{
+						Minecraft.getMinecraft().getRenderItem().renderItemModel(stack);
 					}
 					GlStateManager.popMatrix();
 				}
 			}
 		}
-		GlStateManager.rotate(face, 0F, -1F, 0F);
-		GlStateManager.enableLighting();
-		GlStateManager.disableBlend();
 	}
 }

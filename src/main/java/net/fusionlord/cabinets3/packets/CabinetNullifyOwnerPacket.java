@@ -25,13 +25,15 @@ public class CabinetNullifyOwnerPacket implements IMessage
 	@Override
 	public void toBytes(ByteBuf buffer)
 	{
+		Long posl = pos.toLong();
 		buffer.writeLong(pos.toLong());
 	}
 
 	@Override
 	public void fromBytes(ByteBuf buffer)
 	{
-		pos = BlockPos.fromLong(buffer.readLong());
+		Long posl = buffer.readLong();
+		pos = BlockPos.fromLong(posl);
 	}
 
 	public static class Handler implements IMessageHandler<CabinetNullifyOwnerPacket, IMessage>

@@ -1,5 +1,6 @@
 package net.fusionlord.cabinets3.inventory;
 
+import net.fusionlord.cabinets3.tileentity.CabinetTileEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
@@ -19,5 +20,11 @@ public class CabinetSlot extends Slot
 	public boolean isItemValid(ItemStack itemStack)
 	{
 		return inventory.isItemValidForSlot(slotNumber, itemStack);
+	}
+
+	@Override
+	public int getSlotStackLimit()
+	{
+		return ((CabinetTileEntity) inventory).getInventoryStackLimit(slotNumber);
 	}
 }

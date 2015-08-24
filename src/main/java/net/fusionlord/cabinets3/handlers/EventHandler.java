@@ -1,8 +1,10 @@
 package net.fusionlord.cabinets3.handlers;
 
 import net.fusionlord.cabinets3.Reference;
+import net.fusionlord.cabinets3.block.CabinetBlock;
 import net.minecraft.item.crafting.CraftingManager;
 import net.minecraft.item.crafting.IRecipe;
+import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.fml.client.event.ConfigChangedEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -32,6 +34,18 @@ public class EventHandler
 					}
 				}
 				Reference.addCabinetRecipe();
+			}
+		}
+	}
+
+	@SubscribeEvent
+	public void onBlockPlaced(BlockEvent.PlaceEvent event)
+	{
+		if (event.placedBlock instanceof CabinetBlock)
+		{
+			if (!CabinetBlock.canPlace(event.world, event.pos, event.player))
+			{
+				event.setCanceled(true);
 			}
 		}
 	}

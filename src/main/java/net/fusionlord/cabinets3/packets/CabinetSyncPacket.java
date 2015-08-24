@@ -22,8 +22,8 @@ public class CabinetSyncPacket implements IMessage
 	public CabinetSyncPacket(CabinetTileEntity cabinet, byte part)
 	{
 		pos = cabinet.getPos();
-		tagCompound = new NBTTagCompound();
 		this.part = part;
+		tagCompound = new NBTTagCompound();
 		switch (part)
 		{
 			case GENERAL:
@@ -43,16 +43,15 @@ public class CabinetSyncPacket implements IMessage
 		buffer.writeLong(pos.toLong());
 		buffer.writeByte(part);
 		ByteBufUtils.writeTag(buffer, tagCompound);
-		System.out.println(tagCompound);
 	}
 
 	@Override
 	public void fromBytes(ByteBuf buffer)
 	{
-		pos = BlockPos.fromLong(buffer.readLong());
+		Long posl = buffer.readLong();
+		pos = BlockPos.fromLong(posl);
 		part = buffer.readByte();
 		tagCompound = ByteBufUtils.readTag(buffer);
-		System.out.println(tagCompound);
 	}
 
 	public static class Handler implements IMessageHandler<CabinetSyncPacket, IMessage>

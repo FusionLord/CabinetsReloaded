@@ -28,6 +28,7 @@ public class CabinetsReloaded
 	{
 		Reference.config = new Config(event.getSuggestedConfigurationFile());
 		Reference.init();
+		proxy.loadResources(event.getModConfigurationDirectory());
 	}
 
 	@EventHandler

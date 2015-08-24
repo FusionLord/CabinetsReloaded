@@ -1,14 +1,15 @@
 package net.fusionlord.cabinets3.client.gui;
 
+import net.fusionlord.cabinets3.CabinetsReloaded;
 import net.fusionlord.cabinets3.Reference;
 import net.fusionlord.cabinets3.client.renderer.CabinetParts;
+import net.fusionlord.cabinets3.client.renderer.RenderingReference;
 import net.fusionlord.cabinets3.packets.CabinetTextureSyncPacket;
 import net.fusionlord.cabinets3.tileentity.CabinetTileEntity;
 import net.fusionlord.fusionutil.client.dynamics.DynGUIScreen;
 import net.fusionlord.fusionutil.client.dynamics.elements.ButtonGuiElement;
 import net.fusionlord.fusionutil.client.dynamics.elements.IGuiElement;
 import net.fusionlord.fusionutil.client.dynamics.elements.TextFieldGuiElement;
-import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -21,8 +22,10 @@ import org.lwjgl.input.Mouse;
 
 import java.awt.*;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -41,7 +44,7 @@ public class CabinetSkinSelectionGui extends DynGUIScreen
 	private TextFieldGuiElement search;
 	private List<TextureAtlasSprite> textures = new ArrayList<>();
 
-	public CabinetSkinSelectionGui(CabinetTileEntity cabinetTE, EntityPlayer player)
+	public CabinetSkinSelectionGui(EntityPlayer player, CabinetTileEntity cabinetTE)
 	{
 		super(player);
 		cabinet = cabinetTE;
@@ -52,11 +55,11 @@ public class CabinetSkinSelectionGui extends DynGUIScreen
 	{
 		int x = 5;
 		int y = tabOffset + 5;
-
+		int id = 0;
 		//Tabs
-		buttonList.add(tab1 = new ButtonGuiElement(buttonList.size(), x, y - tabOffset, buttonScaleX, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.tab_outside"), false, true));
-		buttonList.add(tab2 = new ButtonGuiElement(buttonList.size(), x + buttonScaleX + 5, y - tabOffset, buttonScaleX, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.tab_shelves"), true, true));
-		buttonList.add(tab3 = new ButtonGuiElement(buttonList.size(), x + buttonScaleX * 2 + 10, y - tabOffset, buttonScaleX, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.tab_inside"), true, true));
+		elements.add(tab1 = new ButtonGuiElement(id++, x, y - tabOffset, buttonScaleX, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.tab_outside"), false, true));
+		elements.add(tab2 = new ButtonGuiElement(id++, x + buttonScaleX + 5, y - tabOffset, buttonScaleX, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.tab_shelves"), true, true));
+		elements.add(tab3 = new ButtonGuiElement(id++, x + buttonScaleX * 2 + 10, y - tabOffset, buttonScaleX, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.tab_inside"), true, true));
 
 		List<ButtonGuiElement> tab1contents = new ArrayList<>();
 		List<ButtonGuiElement> tab2contents = new ArrayList<>();
@@ -69,24 +72,19 @@ public class CabinetSkinSelectionGui extends DynGUIScreen
 			{
 				if (part.name().toLowerCase().contains("inner"))
 				{
-					button = new ButtonGuiElement(buttonList.size(), x, y1, buttonScaleX, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.".concat(part.name().toLowerCase())), true, false);
-
-					buttonList.add(button);
+					elements.add(button = new ButtonGuiElement(id++, x, y1, buttonScaleX, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.".concat(part.name().toLowerCase())), true, false));
 					tab3contents.add(button);
 					y1 += buttonScaleY;
 				}
 				else if (part.name().toLowerCase().contains("shelf"))
 				{
-					button = new ButtonGuiElement(buttonList.size(), x, y2, buttonScaleX, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.".concat(part.name().toLowerCase())), true, false);
-					buttonList.add(button);
+					elements.add(button = new ButtonGuiElement(id++, x, y2, buttonScaleX, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.".concat(part.name().toLowerCase())), true, false));
 					tab2contents.add(button);
-
 					y2 += buttonScaleY;
 				}
 				else
 				{
-					button = new ButtonGuiElement(buttonList.size(), x, y3, buttonScaleX, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.".concat(part.name().toLowerCase())), true, true);
-					buttonList.add(button);
+					elements.add(button = new ButtonGuiElement(id++, x, y3, buttonScaleX, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.".concat(part.name().toLowerCase())), true, true));
 					tab1contents.add(button);
 					y3 += buttonScaleY;
 				}
@@ -94,19 +92,19 @@ public class CabinetSkinSelectionGui extends DynGUIScreen
 		}
 		y += buttonScaleY * 6;
 
-		buttonList.add(all = new ButtonGuiElement(buttonList.size(), x, y, buttonScaleX, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.all"), true, true));
+		elements.add(all = new ButtonGuiElement(id++, x, y, buttonScaleX, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.all"), true, true));
 		y += buttonScaleY;
-		buttonList.add(door = new ButtonGuiElement(buttonList.size(), x, y, buttonScaleX, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.door"), true, true));
+		elements.add(door = new ButtonGuiElement(id++, x, y, buttonScaleX, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.door"), true, true));
 		y += 5 + buttonScaleY;
-		buttonList.add(done = new ButtonGuiElement(buttonList.size(), x, y, buttonScaleX, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.finished"), true, true));
-		buttonList.add(sort = new ButtonGuiElement(buttonList.size(), done.xPosition + done.width + 5, y, scale, buttonScaleY, "Aa", true, true));
-		search = new TextFieldGuiElement(0, fontRendererObj, sort.xPosition + sort.width + 5, y, 75, buttonScaleY);
-		search.setCanLoseFocus(false);
-		search.setFocused(true);
-		buttonList.add(prev = new ButtonGuiElement(buttonList.size(), search.xPosition + search.width + 5, y, 30, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.prev_page"), true, true));
-		buttonList.add(next = new ButtonGuiElement(buttonList.size(), prev.xPosition + prev.width + 60, y, 30, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.next_page"), true, true));
+		elements.add(done = new ButtonGuiElement(id++, x, y, buttonScaleX, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.finished"), true, true));
+		elements.add(sort = new ButtonGuiElement(id++, done.getElementX() + done.getElementWidth() + 5, y, scale, buttonScaleY, "Aa", true, true));
+		elements.add(search = new TextFieldGuiElement(0, fontRendererObj, sort.getElementX() + sort.getElementWidth() + 5, y, 75, buttonScaleY));
+		search.getTextField().setCanLoseFocus(false);
+		search.getTextField().setFocused(true);
+		elements.add(prev = new ButtonGuiElement(id++, search.getTextField().xPosition + search.getTextField().width + 5, y, 30, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.prev_page"), true, true));
+		elements.add(next = new ButtonGuiElement(id, prev.getElementX() + prev.getElementWidth() + 60, y, 30, buttonScaleY, StatCollector.translateToLocal("cabinet.skin_gui.button.next_page"), true, true));
 
-		elements.addAll((Collection<? extends IGuiElement>) buttonList.stream().filter(o -> o instanceof IGuiElement).map(o -> o).collect(Collectors.toList()));
+		buttonList.addAll(elements.stream().filter(element -> element instanceof ButtonGuiElement).map(element -> ((ButtonGuiElement) element).getButton()).collect(Collectors.toList()));
 
 		elements.add(search);
 
@@ -115,7 +113,7 @@ public class CabinetSkinSelectionGui extends DynGUIScreen
 		tabContents.put(tab2, tab2contents);
 		tabContents.put(tab3, tab3contents);
 
-		textures = Reference.getSkinsForSearch(search.getText());
+		textures = Reference.getSkinsForSearch(search.getTextField().getText());
 	}
 
 	@Override
@@ -123,11 +121,11 @@ public class CabinetSkinSelectionGui extends DynGUIScreen
 	{
 		super.keyTyped(typedChar, keyCode);
 
-		if (this.search.isFocused())
+		if (search.getTextField().isFocused())
 		{
-			this.search.textboxKeyTyped(typedChar, keyCode);
+			search.getTextField().textboxKeyTyped(typedChar, keyCode);
 		}
-		textures = Reference.getSkinsForSearch(search.getText());
+		textures = Reference.getSkinsForSearch(search.getTextField().getText());
 		if (page > textures.size() / (tileX * tileY))
 		{
 			page = textures.size() / (tileX * tileY);
@@ -140,7 +138,7 @@ public class CabinetSkinSelectionGui extends DynGUIScreen
 		super.mouseClicked(mouseX, mouseY, mouseButton);
 		search.mouseClicked(mouseX, mouseY, mouseButton);
 
-		textures = Reference.getSkinsForSearch(search.getText());
+		textures = Reference.getSkinsForSearch(search.getTextField().getText());
 		if (page > textures.size() / (tileX * tileY))
 		{
 			page = textures.size() / (tileX * tileY);
@@ -172,16 +170,8 @@ public class CabinetSkinSelectionGui extends DynGUIScreen
 			}
 			idx++;
 		}
-		return mc.getTextureMapBlocks().getAtlasSprite(cabinet.getDefaultTexture());
+		return null;
 	}
-
-	@Override
-	public void updateScreen()
-	{
-		super.updateScreen();
-		search.updateCursorCounter();
-	}
-
 	@Override
 	public void drawScreen(int mouseX, int mouseY, float partialTicks)
 	{
@@ -205,7 +195,7 @@ public class CabinetSkinSelectionGui extends DynGUIScreen
 		}
 
 		Color c;
-		drawCenteredStringNoShadow(fontRendererObj, String.format("%s of %s", page + 1, textures.size() / ((tileX * tileY) + 1)), prev.xPosition + prev.width + 30, prev.yPosition + 7, 0x000000);
+		RenderingReference.drawCenteredStringNoShadow(fontRendererObj, String.format("%s of %s", page + 1, textures.size() / ((tileX * tileY) + 1)), prev.getElementX() + prev.getElementWidth() + 30, prev.getElementY() + 7, 0x000000);
 		GlStateManager.color(1F, 1F, 1F);
 
 		mc.getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
@@ -237,7 +227,7 @@ public class CabinetSkinSelectionGui extends DynGUIScreen
 		}
 
 		//Door
-		texture = mc.getTextureMapBlocks().getTextureExtry(cabinet.getTexture(CabinetParts.values().length - 3 + cabinet.getBlockMetadata()));
+		texture = mc.getTextureMapBlocks().getTextureExtry(cabinet.getDoorTexture());
 		for (String s : Reference.COLORABLE)
 		{
 			if (texture.getIconName().contains(s))
@@ -288,20 +278,27 @@ public class CabinetSkinSelectionGui extends DynGUIScreen
 			idx++;
 		}
 
-		//Draw texture tooltip.
-		texture = getTextureAt(mouseX, mouseY);
-		List<String> lines = new ArrayList<>();
-		String s = texture.getIconName();
-		String modid = s.substring(0, s.indexOf(":"));
-		ModContainer mod = modid.equals("minecraft") ? Loader.instance().getMinecraftModContainer() : Loader.instance().getIndexedModList().get(modid);
-		lines.add(mod == null ? modid : mod.getName());
-		lines.add(capitalize(s.substring(s.lastIndexOf("/") + 1).replace("_", " ")));
-		drawHoveringText(lines, mouseX, mouseY);
+		if (mouseX > x && mouseX < x + tileX * scale && mouseY > y && mouseY < y + tileY * scale)
+		{
+			//Draw texture tooltip.
+			texture = getTextureAt(mouseX, mouseY);
+			if (texture != null)
+			{
+				List<String> lines = new ArrayList<>();
+				String s = texture.getIconName();
+				String modid = s.substring(0, s.indexOf(":"));
+				ModContainer mod = modid.equals("minecraft") ? Loader.instance().getMinecraftModContainer() : Loader.instance().getIndexedModList().get(modid);
+				lines.add(mod == null ? modid : mod.getName());
+				lines.add(RenderingReference.capitalize(s.substring(s.lastIndexOf("/") + 1).replace("_", " ")));
+				drawHoveringText(lines, mouseX, mouseY);
+			}
+		}
 	}
 
 	@Override
 	protected void drawGuiBackgroundLayer(int mouseX, int mouseY)
 	{
+		drawDefaultBackground();
 		super.drawGuiBackgroundLayer(mouseX, mouseY);
 
 		//door
@@ -329,20 +326,6 @@ public class CabinetSkinSelectionGui extends DynGUIScreen
 		GlStateManager.color(1F, 1F, 1F);
 	}
 
-	public String capitalize(String name)
-	{
-		if (name != null && name.length() != 0)
-		{
-			char[] chars = name.toCharArray();
-			chars[0] = Character.toUpperCase(chars[0]);
-			return new String(chars);
-		}
-		else
-		{
-			return name;
-		}
-	}
-
 	@Override
 	public void onGuiClosed()
 	{
@@ -356,34 +339,35 @@ public class CabinetSkinSelectionGui extends DynGUIScreen
 		return false;
 	}
 
-	public void drawCenteredStringNoShadow(FontRenderer fontRendererIn, String text, int x, int y, int color)
-	{
-		fontRendererIn.drawString(text, x - fontRendererIn.getStringWidth(text) / 2, y, color);
-	}
-
 	@Override
 	public void actionPerformed(GuiButton button)
 	{
-		if (button == all)
+		if (button == tab1.getButton() || button == tab2.getButton() || button == tab3.getButton())
 		{
-			for (ButtonGuiElement current : tabContents.get(currentTab))
+			currentTab.getButton().enabled = true;
+			List<ButtonGuiElement> contents = tabContents.get(currentTab);
+			for (IGuiElement element : contents)
 			{
-				cabinet.setTexture(current.id - 3, selectedTexture.getIconName());
+				((ButtonGuiElement) element).getButton().visible = false;
+				((ButtonGuiElement) element).getButton().enabled = false;
 			}
-			Reference.packetHandler.sendToServer(new CabinetTextureSyncPacket(cabinet));
+			currentTab = (ButtonGuiElement) elements.get(button.id);
+			currentTab.getButton().enabled = false;
+			contents = tabContents.get(currentTab);
+			for (IGuiElement element : contents)
+			{
+				((ButtonGuiElement) element).getButton().visible = true;
+				((ButtonGuiElement) element).getButton().enabled = true;
+			}
 		}
-		else if (button == done)
-		{
-			player.closeScreen();
-		}
-		else if (button == next)
+		else if (button == next.getButton())
 		{
 			if (page + 1 <= textures.size() / (tileX * tileY))
 			{
 				page++;
 			}
 		}
-		else if (button == prev)
+		else if (button == prev.getButton())
 		{
 
 			if (page - 1 >= 0)
@@ -391,85 +375,44 @@ public class CabinetSkinSelectionGui extends DynGUIScreen
 				page--;
 			}
 		}
-		else if (button == tab1)
+		else if (button == all.getButton() && selectedTexture != null)
 		{
-			currentTab.enabled = true;
-			List<ButtonGuiElement> contents = tabContents.get(currentTab);
-			for (IGuiElement element : contents)
+			for (ButtonGuiElement current : tabContents.get(currentTab))
 			{
-				((ButtonGuiElement) element).visible = false;
+				cabinet.setTexture(current.getButton().id - 3, selectedTexture.getIconName());
 			}
-			currentTab = (ButtonGuiElement) button;
-			currentTab.enabled = false;
-			contents = tabContents.get(currentTab);
-			for (IGuiElement element : contents)
-			{
-				((ButtonGuiElement) element).visible = true;
-			}
-		}
-		else if (button == tab2)
-		{
-			currentTab.enabled = true;
-			List<ButtonGuiElement> contents = tabContents.get(currentTab);
-			for (IGuiElement element : contents)
-			{
-				((ButtonGuiElement) element).visible = false;
-			}
-			currentTab = (ButtonGuiElement) button;
-			currentTab.enabled = false;
-			contents = tabContents.get(currentTab);
-			for (IGuiElement element : contents)
-			{
-				((ButtonGuiElement) element).visible = true;
-			}
-		}
-		else if (button == tab3)
-		{
-			currentTab.enabled = true;
-			List<ButtonGuiElement> contents = tabContents.get(currentTab);
-			for (IGuiElement element : contents)
-			{
-				((ButtonGuiElement) element).visible = false;
-			}
-			currentTab = (ButtonGuiElement) button;
-			currentTab.enabled = false;
-			contents = tabContents.get(currentTab);
-			for (IGuiElement element : contents)
-			{
-				((ButtonGuiElement) element).visible = true;
-			}
-		}
-		else if (button == door)
-		{
-			cabinet.setTexture(CabinetParts.values().length - 3 + cabinet.getBlockMetadata(), selectedTexture.getIconName());
 			Reference.packetHandler.sendToServer(new CabinetTextureSyncPacket(cabinet));
 		}
-		else if (button == sort)
+		else if (button == door.getButton())
+		{
+			if (selectedTexture != null)
+			{
+				cabinet.setDoorTexture(selectedTexture.getIconName());
+				Reference.packetHandler.sendToServer(new CabinetTextureSyncPacket(cabinet));
+			}
+		}
+		else if (button == done.getButton())
+		{
+			player.openGui(CabinetsReloaded.instance, 0, cabinet.getWorld(), cabinet.getPos().getX(), cabinet.getPos().getY(), cabinet.getPos().getZ());
+		}
+		else if (button == sort.getButton())
 		{
 			if (sortType == 0)
 			{
-				sort.displayString = "M";
+				sort.getButton().displayString = "M";
 				sortType = 1;
 			}
 			else
 			{
-				sort.displayString = "Aa";
+				sort.getButton().displayString = "Aa";
 				sortType = 0;
 			}
 			Reference.sortTextures(sortType);
 		}
-		else
+		else if (selectedTexture != null)
 		{
-			List<ButtonGuiElement> buttons = tabContents.get(currentTab);
-			for (int i = 0; i < buttons.size(); i++)
-			{
-				if (button == buttons.get(i))
-				{
-					cabinet.setTexture(i, selectedTexture.getIconName());
-					Reference.packetHandler.sendToServer(new CabinetTextureSyncPacket(cabinet));
-					break;
-				}
-			}
+			cabinet.setTexture(button.id - 3, selectedTexture.getIconName());
+			Reference.packetHandler.sendToServer(new CabinetTextureSyncPacket(cabinet));
 		}
 	}
 }

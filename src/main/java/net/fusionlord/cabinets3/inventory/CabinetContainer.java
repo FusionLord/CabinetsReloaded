@@ -18,16 +18,17 @@ public class CabinetContainer extends Container
 		this.cabinet = cabinet;
 		this.cabinet.openInventory(inventory.player);
 
-		int o = 1;
-		for (int q = 0; q < 3; q++)
+		int i = 0;
+		while (i < cabinet.getSizeInventory() - 2)
 		{
-			for (int p = 0; p < (cabinet.getSizeInventory()) / 3; p++)
-			{
-				addSlotToContainer(new CabinetSlot(cabinet, o++, 8 + p * 18, 17 + q * 18));
-			}
+			addSlotToContainer(new CabinetSlot(cabinet, i, 8 + ((i % 3) * 18), 18 + (i / 3) * 18));
+			i++;
 		}
+		addSlotToContainer(new CabinetSlot(cabinet, i++, 96, 60));
+		addSlotToContainer(new CabinetSlot(cabinet, i, 120, 60));
 
 		bindPlayerInventory(inventory);
+
 	}
 
 	protected void bindPlayerInventory(InventoryPlayer player_inventory)
@@ -112,5 +113,4 @@ public class CabinetContainer extends Container
 
 		return itemStack;
 	}
-
 }

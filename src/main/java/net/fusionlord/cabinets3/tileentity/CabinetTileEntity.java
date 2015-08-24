@@ -1,14 +1,16 @@
 package net.fusionlord.cabinets3.tileentity;
 
 import net.fusionlord.cabinets3.Reference;
-import net.fusionlord.cabinets3.block.CabinetBlock;
+import net.fusionlord.cabinets3.abilities.*;
 import net.fusionlord.cabinets3.client.renderer.CabinetParts;
 import net.fusionlord.cabinets3.item.CabinetItem;
 import net.fusionlord.cabinets3.packets.CabinetSyncPacket;
+import net.fusionlord.cabinets3.util.DoorType;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.ISidedInventory;
-import net.minecraft.item.ItemBlock;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetworkManager;
@@ -21,57 +23,61 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.IChatComponent;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
 
-import java.util.UUID;
+import java.util.*;
 
 public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBox, IInventory, ISidedInventory
 {
+	private static final Map<Item, Class<? extends Ability>> abilityMap = new HashMap<>();
+
+	static
+	{
+		abilityMap.put(Item.getItemFromBlock(Blocks.crafting_table), CraftingAbility.class);
+		abilityMap.put(Item.getItemFromBlock(Blocks.furnace), SmeltingAbility.class);
+		abilityMap.put(Item.getItemFromBlock(Blocks.ender_chest), EnderChestAbility.class);
+//		abilityMap.put(Item.getItemFromBlock(Blocks.chest), ChestAbility.class);
+//		abilityMap.put(Item.getItemFromBlock(Blocks.trapped_chest), ChestAbility.class);
+	}
+
+	private List<Ability> abilities = new ArrayList<>();
+	private Ability ability;
 	private ItemStack[] contents = new ItemStack[getSizeInventory()];
 	private String[] textures;
+	private String doorTexture;
+	private DoorType doorType = DoorType.LEFT;
+	private float doorAngle = 0F;
 	private UUID owner;
-	private boolean hidden;
-	private boolean locked;
-	private int facing;
-	private float doorAngle;
-	private boolean powered;
-	private int numUsingPlayers;
-	private int sync = 1;
 	private String ownerName = "";
+	private int numUsingPlayers = 0;
+	private int sync = 1;
 	private boolean needsUpdate = false;
+	private boolean skinningPublic = false;
+	private boolean hidden = false;
+	private boolean locked = true;
+	private boolean powered = false;
+	private EnumFacing facing = EnumFacing.NORTH;
+	private EnumFacing verticalFacing = EnumFacing.NORTH;
 
 	public CabinetTileEntity()
 	{
 		super();
-		locked = true;
-		textures = new String[CabinetParts.values().length];
+		textures = new String[CabinetParts.values().length + 1];
 		for (CabinetParts part : CabinetParts.values())
 		{
-			String tex;
-			if (part.name().toLowerCase().contains("half_door"))
-			{
-				tex = "cabinets3:blocks/halfdoor";
-			}
-			else if (part.name().toLowerCase().contains("door"))
-			{
-				tex = "cabinets3:blocks/door";
-			}
-			else
-			{
-				tex = getDefaultTexture();
-			}
-			textures[part.ordinal()] = tex;
+			textures[part.ordinal()] = getDefaultTexture();
 		}
+		doorTexture = doorType.getTexture();
 	}
 
 	@Override
 	public int getSizeInventory()
 	{
-		return 9;
+		return 11;
 	}
 
 	@Override
 	public ItemStack getStackInSlot(int slot)
 	{
-		return contents[slot - 1];
+		return contents[slot];
 	}
 
 	@Override
@@ -101,13 +107,50 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 	@Override
 	public void setInventorySlotContents(int slot, ItemStack itemStack)
 	{
-		contents[slot - 1] = itemStack;
-		if (itemStack != null && itemStack.stackSize > this.getInventoryStackLimit())
+		if (itemStack != null)
 		{
-			itemStack.stackSize = this.getInventoryStackLimit();
+			if (slot == contents.length - 2)
+			{
+				if (abilityMap.containsKey(itemStack.getItem()))
+				{
+					ability = getAbilityForItem(itemStack.getItem());
+					contents[slot] = itemStack; //itemStack.splitStack(getInventoryStackLimit(slot));
+				}
+				else
+				{
+					if (isItemValidForSlot(slot + 1, itemStack) && getStackInSlot(slot + 1) != null)
+					{
+						setInventorySlotContents(slot + 1, itemStack);
+					}
+				}
+			}
+			else
+			{
+				contents[slot] = itemStack;
+			}
+			if (contents[slot] != null && contents[slot].stackSize < 1)
+			{
+				contents[slot] = null;
+			}
 		}
-
+		else
+		{
+			contents[slot] = null;
+			if (slot == contents.length - 2)
+			{
+				ability = new NoActionAbility();
+			}
+		}
 		markDirty();
+	}
+
+	public int getInventoryStackLimit(int slot)
+	{
+		if (slot >= getSizeInventory() - 2)
+		{
+			return 1;
+		}
+		return getInventoryStackLimit();
 	}
 
 	@Override
@@ -119,7 +162,7 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 	@Override
 	public boolean isItemValidForSlot(int slot, ItemStack itemStack)
 	{
-		return slot == 0 && itemStack.getItem() instanceof ItemBlock || !(itemStack.getItem() instanceof CabinetItem);
+		return (slot == contents.length - 2 && abilityMap.containsKey(itemStack.getItem())) || (slot != contents.length - 2 && !(itemStack.getItem() instanceof CabinetItem));
 	}
 
 	@Override
@@ -129,10 +172,7 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 	}
 
 	@Override
-	public void setField(int id, int value)
-	{
-
-	}
+	public void setField(int id, int value) {}
 
 	@Override
 	public int getFieldCount()
@@ -143,7 +183,7 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 	@Override
 	public void markDirty()
 	{
-		super.markDirty();
+//		super.markDirty();
 		worldObj.checkLight(pos);
 	}
 
@@ -164,21 +204,41 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 	public void readExtraNBT(NBTTagCompound tag)
 	{
 		readGeneralNBT(tag);
+		readAbilitiesNBT(tag);
 		readInventoryNBT(tag);
 		readTextureNBT(tag);
 	}
 
+	private void readAbilitiesNBT(NBTTagCompound tag)
+	{
+		NBTTagCompound abilitiesTag = tag.getCompoundTag("abilities");
+		for (Class<? extends Ability> tempClass : abilityMap.values())
+		{
+			try
+			{
+				Ability temp = tempClass.getConstructor().newInstance();
+				if (abilitiesTag.hasKey(temp.getTagName()))
+				{
+					temp.readNBT(abilitiesTag.getCompoundTag(temp.getTagName()));
+					abilities.add(temp);
+				}
+			}
+			catch (Exception e)
+			{
+				e.printStackTrace();
+			}
+		}
+	}
+
 	public void readGeneralNBT(NBTTagCompound tag)
 	{
-		this.facing = tag.getInteger("facing");
 		if (tag.getBoolean("hasOwner"))
 		{
 			this.owner = new UUID(tag.getLong("UUID1"), tag.getLong("UUID2"));
 			this.ownerName = tag.getString("ownerName");
 		}
 		this.hidden = tag.getBoolean("hidden");
-		this.locked = tag.getBoolean("locked");
-		this.powered = tag.getBoolean("Powered");
+		readSettingsNBT(tag);
 	}
 
 	public void readInventoryNBT(NBTTagCompound tag)
@@ -187,6 +247,10 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 		for (int i = 0; i < contents.length; i++)
 		{
 			contents[i] = ItemStack.loadItemStackFromNBT(inv.getCompoundTag("slot".concat(String.valueOf(i))));
+		}
+		if (ability == null && contents[contents.length - 2] != null)
+		{
+			ability = getAbilityForItem(contents[contents.length - 2].getItem());
 		}
 	}
 
@@ -200,6 +264,43 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 				textures[part.ordinal()] = texTag.getString("texture:".concat(part.name().toLowerCase()));
 			}
 		}
+		doorTexture = texTag.getString("texture:door");
+		if (worldObj != null && worldObj.isRemote)
+		{
+			worldObj.checkLight(pos);
+		}
+	}
+
+	public void readSettingsNBT(NBTTagCompound tag)
+	{
+		if (tag.hasKey("locked"))
+		{
+			this.locked = tag.getBoolean("locked");
+		}
+		if (tag.hasKey("hidden"))
+		{
+			this.hidden = tag.getBoolean("hidden");
+		}
+		if (tag.hasKey("yaw"))
+		{
+			this.facing = EnumFacing.values()[tag.getInteger("yaw")];
+		}
+		if (tag.hasKey("facing"))
+		{
+			this.facing = EnumFacing.values()[tag.getInteger("facing") + 2];
+		}
+		if (tag.hasKey("pitch"))
+		{
+			this.verticalFacing = EnumFacing.values()[tag.getInteger("pitch")];
+		}
+		if (tag.hasKey("skinning"))
+		{
+			this.skinningPublic = tag.getBoolean("skinning");
+		}
+		if (tag.hasKey("doortype"))
+		{
+			this.doorType = DoorType.values()[tag.getInteger("doortype")];
+		}
 	}
 
 	@Override
@@ -212,13 +313,25 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 	public void writeExtraNBT(NBTTagCompound tag)
 	{
 		writeGeneralNBT(tag);
+		writeAbilitiesNBT(tag);
 		writeInventoryNBT(tag);
 		writeTextureNBT(tag);
 	}
 
+	private void writeAbilitiesNBT(NBTTagCompound tag)
+	{
+		NBTTagCompound abilitiesTag = new NBTTagCompound();
+		for (Ability a : abilities)
+		{
+			NBTTagCompound abilityTag = new NBTTagCompound();
+			a.writeNBT(abilityTag);
+			abilitiesTag.setTag(a.getTagName(), abilityTag);
+		}
+		tag.setTag("abilities", abilitiesTag);
+	}
+
 	public void writeGeneralNBT(NBTTagCompound tag)
 	{
-		tag.setInteger("facing", this.facing);
 		tag.setBoolean("hasOwner", this.owner != null);
 		if (this.owner != null)
 		{
@@ -226,9 +339,8 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 			tag.setLong("UUID2", this.owner.getLeastSignificantBits());
 			tag.setString("ownerName", this.ownerName);
 		}
-		tag.setBoolean("hidden", this.hidden);
-		tag.setBoolean("locked", this.locked);
 		tag.setBoolean("Powered", this.powered);
+		writeSettingsNBT(tag);
 	}
 
 	public void writeInventoryNBT(NBTTagCompound tagCompound)
@@ -254,7 +366,19 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 		{
 			texTag.setString("texture:".concat(part.name().toLowerCase()), textures[part.ordinal()]);
 		}
+		texTag.setString("texture:door", doorTexture);
 		tagCompound.setTag("texTag", texTag);
+	}
+
+	public NBTTagCompound writeSettingsNBT(NBTTagCompound tag)
+	{
+		tag.setBoolean("locked", this.locked);
+		tag.setBoolean("hidden", this.hidden);
+		tag.setInteger("yaw", this.facing.ordinal());
+		tag.setInteger("pitch", this.verticalFacing.ordinal());
+		tag.setBoolean("skinning", this.skinningPublic);
+		tag.setInteger("doortype", this.doorType.ordinal());
+		return tag;
 	}
 
 	@Override
@@ -272,6 +396,15 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 	@Override
 	public void update()
 	{
+		if (ability != null)
+		{
+			if (ability.needsWorld() && ability.getWorld() == null)
+			{
+				ability.setWorld(worldObj);
+			}
+			ability.update();
+		}
+
 		double x = (double) pos.getX() + 0.5D;
 		double y = (double) pos.getY() + 0.5D;
 		double z = (double) pos.getZ() + 0.5D;
@@ -286,7 +419,7 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 			}
 		}
 
-		if (!CabinetBlock.getBlocked(worldObj, pos, facing))
+		if (!getBlocked())
 		{
 			float anglePerTick = 0.1F;
 			float lastAngle = doorAngle;
@@ -315,11 +448,24 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 		{
 			doorAngle = 1F;
 		}
-		if (doorAngle < 0F || (CabinetBlock.getBlocked(worldObj, pos, facing)
-				                       && doorAngle > 0F))
+		if (doorAngle < 0F || (getBlocked() && doorAngle > 0F))
 		{
 			doorAngle = 0F;
 		}
+	}
+
+	public boolean getBlocked()
+	{
+		if (verticalFacing == EnumFacing.DOWN)
+		{
+			return worldObj.getBlockState(pos.offset(EnumFacing.DOWN)).getBlock().isFullBlock();
+		}
+		else if (verticalFacing == EnumFacing.UP)
+		{
+			return worldObj.getBlockState(pos.offset(EnumFacing.UP)).getBlock().isFullBlock();
+		}
+
+		return worldObj.getBlockState(pos.offset(facing.getOpposite())).getBlock().isFullBlock();
 	}
 
 	@Override
@@ -432,12 +578,12 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 		this.locked = locked;
 	}
 
-	public int getFacing()
+	public EnumFacing getFacing()
 	{
 		return facing;
 	}
 
-	public void setFacing(int facing)
+	public void setFacing(EnumFacing facing)
 	{
 		this.facing = facing;
 	}
@@ -504,7 +650,6 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 	public void setTextures(String[] newTextures)
 	{
 		textures = newTextures;
-		worldObj.checkLight(getPos());
 	}
 
 	public String getDefaultTexture()
@@ -520,6 +665,91 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 	public void clearOwner()
 	{
 		this.owner = null;
-		this.ownerName = null;
+		this.ownerName = "";
+	}
+
+	public DoorType getDoorType()
+	{
+		return doorType;
+	}
+
+	public void setDoorType(DoorType doorType)
+	{
+		this.doorType = doorType;
+	}
+
+	public String getDoorTexture()
+	{
+		return doorTexture == null || doorTexture.isEmpty() ? doorType.getTexture() : doorTexture;
+	}
+
+	public void setDoorTexture(String doorTexture)
+	{
+		this.doorTexture = doorTexture;
+	}
+
+	public EnumFacing getVerticalFacing()
+	{
+		return verticalFacing;
+	}
+
+	public void setVerticalFacing(EnumFacing verticalFacing)
+	{
+		this.verticalFacing = verticalFacing;
+	}
+
+	public boolean isSkinningPublic()
+	{
+		return skinningPublic;
+	}
+
+	public void togglePublicSkin()
+	{
+		skinningPublic = !skinningPublic;
+	}
+
+	public Ability getAbility()
+	{
+		return ability;
+	}
+
+	public ItemStack getSecAbilityStack()
+	{
+		return contents[contents.length - 1];
+	}
+
+	public Ability getAbilityForItem(Item item)
+	{
+		Class<? extends Ability> tempClass = abilityMap.get(item);
+		for (Ability ability : abilities)
+		{
+			if (ability.getClass() == tempClass)
+			{
+				if (ability.needsWorld())
+				{
+					ability.setWorld(worldObj);
+				}
+				return ability;
+			}
+		}
+
+		if (tempClass != null)
+		{
+			try
+			{
+				Ability a = tempClass.getConstructor().newInstance();
+				abilities.add(a);
+				if (a.needsWorld())
+				{
+					a.setWorld(worldObj);
+				}
+				return a;
+			}
+			catch (Exception e)
+			{
+				e.printStackTrace();
+			}
+		}
+		return new NoActionAbility();
 	}
 }
