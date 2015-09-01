@@ -3,6 +3,7 @@ package net.fusionlord.cabinets3.client.gui;
 import net.fusionlord.cabinets3.CabinetsReloaded;
 import net.fusionlord.cabinets3.Reference;
 import net.fusionlord.cabinets3.inventory.CabinetContainer;
+import net.fusionlord.cabinets3.packets.CabinetAbilityDoActionPacket;
 import net.fusionlord.cabinets3.tileentity.CabinetTileEntity;
 import net.fusionlord.fusionutil.client.dynamics.DynGUIContainer;
 import net.fusionlord.fusionutil.client.dynamics.elements.ButtonGuiElement;

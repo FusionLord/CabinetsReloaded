@@ -18,7 +18,10 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.inventory.Container;
-import net.minecraft.item.*;
+import net.minecraft.item.ItemAxe;
+import net.minecraft.item.ItemBlock;
+import net.minecraft.item.ItemPickaxe;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BlockPos;
@@ -76,7 +79,7 @@ public class CabinetBlock extends BlockContainer
 	@Override
 	public ItemStack getPickBlock(MovingObjectPosition target, World world, BlockPos pos, EntityPlayer player)
 	{
-		ItemStack itemStack = new ItemStack(Item.getItemFromBlock(this), 1, getMetaFromState(world.getBlockState(pos)));
+		ItemStack itemStack = new ItemStack(this, 1);
 		if (player.isSneaking())
 		{
 			NBTTagCompound silky = new NBTTagCompound();
@@ -118,18 +121,20 @@ public class CabinetBlock extends BlockContainer
 	public boolean removedByPlayer(World world, BlockPos pos, EntityPlayer player, boolean willHarvest)
 	{
 		CabinetTileEntity cabinet = (CabinetTileEntity) world.getTileEntity(pos);
-		if (player.capabilities.isCreativeMode || cabinet.isOwner(player))
+		if (cabinet.isOwner(player))
 		{
 			IBlockState state = world.getBlockState(pos);
 			ItemStack tool = player.getCurrentEquippedItem();
 			if (tool != null && (tool.getItem() instanceof ItemAxe || tool.getItem() instanceof ItemPickaxe) && EnchantmentHelper.getSilkTouchModifier(player))
 			{
-				ItemStack stack = new ItemStack(this, 1);
-				NBTTagCompound cabinetTag = new NBTTagCompound();
-				cabinet.writeExtraNBT(cabinetTag);
-				stack.setTagCompound(new NBTTagCompound());
-				stack.getTagCompound().setTag("silktouch", cabinetTag);
-				if (!player.inventory.addItemStackToInventory(stack))
+				ItemStack itemStack = new ItemStack(this, 1);
+				NBTTagCompound silky = new NBTTagCompound();
+				cabinet.writeExtraNBT(silky);
+				silky.removeTag("yaw");
+				silky.removeTag("pitch");
+				itemStack.setTagCompound(new NBTTagCompound());
+				itemStack.getTagCompound().setTag("silktouch", silky);
+				if (!player.inventory.addItemStackToInventory(itemStack))
 				{
 					player.addChatComponentMessage(new ChatComponentText("Cannot break, you don't have room for it."));
 					return false;

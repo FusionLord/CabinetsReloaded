@@ -94,7 +94,7 @@ public class CabinetTileEntityRenderer extends TileEntitySpecialRenderer
 			}
 		}
 
-		boolean doubleRender = Reference.isTextureClimbable(texture.getIconName()) || Reference.isTextureDoubleRendered(texture.getIconName()) || texture.getIconName().toLowerCase().contains("items");
+		boolean doubleRender = texture.getIconName().toLowerCase().contains("items");
 		float a = 90 * cabinet.getDoorAngle();
 		float m = 0.0625F;
 		switch (cabinet.getDoorType())
@@ -182,7 +182,7 @@ public class CabinetTileEntityRenderer extends TileEntitySpecialRenderer
 		for (CabinetParts part : CabinetParts.values())
 		{
 			texture = Minecraft.getMinecraft().getTextureMapBlocks().getTextureExtry(cabinet.getTexture(part.ordinal()));
-			doubleRender = Reference.isTextureClimbable(texture.getIconName()) || Reference.isTextureDoubleRendered(texture.getIconName()) || texture.getIconName().toLowerCase().contains("items");
+			doubleRender = texture.getIconName().toLowerCase().contains("items");
 			color = -1;
 			if (Reference.isTextureColorable(texture.getIconName()))
 			{

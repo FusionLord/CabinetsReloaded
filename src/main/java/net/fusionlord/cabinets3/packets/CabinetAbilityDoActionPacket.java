@@ -1,4 +1,4 @@
-package net.fusionlord.cabinets3.client.gui;
+package net.fusionlord.cabinets3.packets;
 
 import io.netty.buffer.ByteBuf;
 import net.fusionlord.cabinets3.tileentity.CabinetTileEntity;

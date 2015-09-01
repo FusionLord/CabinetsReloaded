@@ -1,7 +1,6 @@
 package net.fusionlord.cabinets3;
 
 import net.fusionlord.cabinets3.block.CabinetBlock;
-import net.fusionlord.cabinets3.client.gui.CabinetAbilityDoActionPacket;
 import net.fusionlord.cabinets3.config.Config;
 import net.fusionlord.cabinets3.handlers.EventHandler;
 import net.fusionlord.cabinets3.packets.*;
@@ -33,7 +32,6 @@ import java.util.stream.Collectors;
 
 public class Reference
 {
-
 	public static final String MOD_ID = "cabinets3";
 	public static final String MOD_VERSION = "version";
 	public static final Logger logger = LogManager.getLogger(MOD_ID);
@@ -41,14 +39,12 @@ public class Reference
 	public static CabinetBlock cabinet;
 	public static Config config;
 	public static boolean showItemsTileEntity = true;
-	public static boolean showItemsItem = true;
+	//	public static boolean showItemsItem = true;
 	public static int cabinetYield = 8;
 	public static int oldCabinetYield = cabinetYield;
 	public static List<TextureAtlasSprite> SKINS = new ArrayList<>();
 	public static IRecipe currentCabinetRecipe;
-	public static String[] LIGHTS;
 	public static String[] BLACKLIST;
-	public static String[] CLIMBABLE;
 	public static String[] COLORABLE;
 	public static String[] DOUBLERENDER;
 
@@ -128,18 +124,6 @@ public class Reference
 	public static boolean isTextureDoubleRendered(String texture)
 	{
 		for (String s : DOUBLERENDER)
-		{
-			if (texture.toLowerCase().contains(s))
-			{
-				return true;
-			}
-		}
-		return false;
-	}
-
-	public static boolean isTextureClimbable(String texture)
-	{
-		for (String s : CLIMBABLE)
 		{
 			if (texture.toLowerCase().contains(s))
 			{

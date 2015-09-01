@@ -41,14 +41,14 @@ public class CabinetSettingsGui extends DynGUIScreen
 		int posX = 5;
 		int posY = 5;
 
-		elements.add(unclaim = new ButtonGuiElement(buttonList.size(), posX, posY, bWidth, bHeight, "Unclaim", true, true));
-		elements.add(show_hide = new ButtonGuiElement(buttonList.size(), posX, posY += bHeight, bWidth, bHeight, String.format("Items: %s", !cabinet.isHidden() ? "Shown" : "Hidden"), true, true));
-		elements.add(public_private = new ButtonGuiElement(buttonList.size(), posX, posY += bHeight, bWidth, bHeight, String.format("Access: %s", cabinet.isLocked() ? "Public" : "Private"), true, true));
-		elements.add(facing = new ButtonGuiElement(buttonList.size(), posX, posY += bHeight, bWidth, bHeight, String.format("Yaw: %s", cabinet.getFacing().getOpposite().name()), true, true));
-		elements.add(vertFacing = new ButtonGuiElement(buttonList.size(), posX, posY += bHeight, bWidth, bHeight, String.format("Pitch: %s", cabinet.getVerticalFacing() == EnumFacing.NORTH ? "flat" : cabinet.getVerticalFacing().name()), true, true));
-		elements.add(publicSkin = new ButtonGuiElement(buttonList.size(), posX, posY += bHeight, bWidth, bHeight, String.format("Skinning: %s", cabinet.isSkinningPublic() ? "Public" : "Private"), true, true));
-		elements.add(doorType = new ButtonGuiElement(buttonList.size(), posX, posY += bHeight, bWidth, bHeight, String.format("Door type: %s", cabinet.getDoorType().name()), true, true));
-		elements.add(back = new ButtonGuiElement(buttonList.size(), posX, posY + bHeight, bWidth, bHeight, "Back", true, true));
+		elements.add(unclaim = new ButtonGuiElement(0, posX, posY, bWidth, bHeight, "Unclaim", true, true));
+		elements.add(show_hide = new ButtonGuiElement(0, posX, posY += bHeight, bWidth, bHeight, String.format("Items: %s", !cabinet.isHidden() ? "Shown" : "Hidden"), true, true));
+		elements.add(public_private = new ButtonGuiElement(0, posX, posY += bHeight, bWidth, bHeight, String.format("Access: %s", cabinet.isLocked() ? "Public" : "Private"), true, true));
+		elements.add(facing = new ButtonGuiElement(0, posX, posY += bHeight, bWidth, bHeight, String.format("Yaw: %s", cabinet.getFacing().getOpposite().name()), true, true));
+		elements.add(vertFacing = new ButtonGuiElement(0, posX, posY += bHeight, bWidth, bHeight, String.format("Pitch: %s", cabinet.getVerticalFacing() == EnumFacing.NORTH ? "flat" : cabinet.getVerticalFacing().name()), true, true));
+		elements.add(publicSkin = new ButtonGuiElement(0, posX, posY += bHeight, bWidth, bHeight, String.format("Skinning: %s", cabinet.isSkinningPublic() ? "Public" : "Private"), true, true));
+		elements.add(doorType = new ButtonGuiElement(0, posX, posY += bHeight, bWidth, bHeight, String.format("Door type: %s", cabinet.getDoorType().name()), true, true));
+		elements.add(back = new ButtonGuiElement(0, posX, posY + bHeight, bWidth, bHeight, "Back", true, true));
 
 		buttonList.addAll(elements.stream().filter(element -> element instanceof ButtonGuiElement).map(element -> ((ButtonGuiElement) element).getButton()).collect(Collectors.toList()));
 	}

@@ -234,10 +234,15 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 	{
 		if (tag.getBoolean("hasOwner"))
 		{
-			this.owner = new UUID(tag.getLong("UUID1"), tag.getLong("UUID2"));
-			this.ownerName = tag.getString("ownerName");
+			owner = new UUID(tag.getLong("UUID1"), tag.getLong("UUID2"));
+			ownerName = tag.getString("ownerName");
 		}
-		this.hidden = tag.getBoolean("hidden");
+		else
+		{
+			owner = null;
+			ownerName = "Unclaimed";
+		}
+		powered = tag.getBoolean("powered");
 		readSettingsNBT(tag);
 	}
 
@@ -297,9 +302,9 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 		{
 			this.skinningPublic = tag.getBoolean("skinning");
 		}
-		if (tag.hasKey("doortype"))
+		if (tag.hasKey("doorType"))
 		{
-			this.doorType = DoorType.values()[tag.getInteger("doortype")];
+			this.doorType = DoorType.values()[tag.getInteger("doorType")];
 		}
 	}
 
@@ -332,14 +337,14 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 
 	public void writeGeneralNBT(NBTTagCompound tag)
 	{
-		tag.setBoolean("hasOwner", this.owner != null);
-		if (this.owner != null)
+		tag.setBoolean("hasOwner", owner != null);
+		if (owner != null)
 		{
-			tag.setLong("UUID1", this.owner.getMostSignificantBits());
-			tag.setLong("UUID2", this.owner.getLeastSignificantBits());
-			tag.setString("ownerName", this.ownerName);
+			tag.setLong("UUID1", owner.getMostSignificantBits());
+			tag.setLong("UUID2", owner.getLeastSignificantBits());
+			tag.setString("ownerName", ownerName);
 		}
-		tag.setBoolean("Powered", this.powered);
+		tag.setBoolean("powered", powered);
 		writeSettingsNBT(tag);
 	}
 
@@ -377,7 +382,7 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 		tag.setInteger("yaw", this.facing.ordinal());
 		tag.setInteger("pitch", this.verticalFacing.ordinal());
 		tag.setBoolean("skinning", this.skinningPublic);
-		tag.setInteger("doortype", this.doorType.ordinal());
+		tag.setInteger("doorType", this.doorType.ordinal());
 		return tag;
 	}
 
