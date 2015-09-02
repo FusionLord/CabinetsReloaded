@@ -143,7 +143,6 @@ public class Reference
 		switch (sortType)
 		{
 			case 1:
-				System.out.println("Sorting by mod!");
 				SKINS.sort((o1, o2) -> o1.getIconName().substring(0, o1.getIconName().indexOf(":")).toUpperCase().compareTo(o2.getIconName().substring(0, o2.getIconName().indexOf(":")).toUpperCase()));
 				break;
 			default:
