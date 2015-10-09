@@ -194,7 +194,7 @@ public class CabinetBlock extends BlockContainer
 	public float getExplosionResistance(World world, BlockPos pos, Entity entity, Explosion explosion)
 	{
 		CabinetTileEntity cabinet = (CabinetTileEntity) world.getTileEntity(pos);
-		if (!cabinet.isLocked())
+		if (cabinet != null && !cabinet.isLocked())
 		{
 			return Blocks.stone.getExplosionResistance(entity);
 		}

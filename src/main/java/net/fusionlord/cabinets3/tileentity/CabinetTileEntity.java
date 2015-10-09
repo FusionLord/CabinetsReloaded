@@ -515,7 +515,7 @@ public class CabinetTileEntity extends TileEntity implements IUpdatePlayerListBo
 	{
 		readFromNBT(pkt.getNbtCompound());
 	}
-	
+
 	@Override
 	public String getCommandSenderName()
 	{
